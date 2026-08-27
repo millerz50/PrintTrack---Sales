@@ -1,0 +1,6 @@
+{
+  "name": "PrintTrack - Sales & Inventory Tracker",
+  "description": "Real-time sales & inventory tracking system for printing services with offline sync, daily receipt reports, cost tracking, stock depletion analytics, and exportable PDF summaries.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
