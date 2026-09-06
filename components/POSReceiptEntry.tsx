@@ -10,7 +10,8 @@ import {
   Layers,
   Sparkles,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  FileText
 } from 'lucide-react';
 import {
   SaleItem,
@@ -19,7 +20,8 @@ import {
   PaymentMethod,
   InventoryItem,
   User,
-  ServiceItem
+  ServiceItem,
+  Quotation
 } from '../types';
 import { storage, CompanyInfo } from '../services/storage';
 
@@ -29,6 +31,7 @@ interface POSReceiptEntryProps {
   activeUser: User;
   company: CompanyInfo;
   onReceiptCreated: (receipt: SaleReceipt) => void;
+  onQuotationCreated?: (quotation: Quotation) => void;
 }
 
 const CATEGORIES: PrintingCategory[] = [
@@ -53,7 +56,8 @@ export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
   services,
   activeUser,
   company,
-  onReceiptCreated
+  onReceiptCreated,
+  onQuotationCreated
 }) => {
   const currency = company.currency || '$';
 
@@ -212,6 +216,53 @@ export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
       unitPrice: 0,
       totalPrice: 0
     }]);
+  };
+
+  const handleSaveAsQuotation = () => {
+    const validItems = items.filter(i => i.description.trim() !== '' && i.quantity > 0);
+    if (validItems.length === 0) {
+      alert('Please add at least one item description with price to generate a quotation.');
+      return;
+    }
+
+    const d = new Date();
+    const todayStr = d.toISOString().split('T')[0];
+    d.setDate(d.getDate() + 14);
+    const validUntilStr = d.toISOString().split('T')[0];
+
+    const quoteNumber = storage.getNextQuoteNumber();
+
+    const createdQuotation = storage.saveQuotation({
+      quoteNumber,
+      date: todayStr,
+      validUntil: validUntilStr,
+      customerName: customerName.trim() || 'Client (Quotation)',
+      customerPhone: customerPhone.trim() || undefined,
+      items: validItems.map(i => ({
+        id: `q_${i.id}`,
+        description: i.description,
+        category: i.category,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        totalPrice: i.totalPrice,
+        unit: 'unit'
+      })),
+      subtotal,
+      discount,
+      taxRate: company.taxRate || 0,
+      taxAmount,
+      totalAmount,
+      status: 'Sent',
+      notes: notes.trim() || undefined,
+      terms: 'Valid for 14 calendar days from date of issue. 50% deposit required upon order confirmation.',
+      preparedBy: activeUser.name
+    });
+
+    if (onQuotationCreated) {
+      onQuotationCreated(createdQuotation);
+    } else {
+      alert(`Quotation ${quoteNumber} created and saved successfully! Switch to the Quotations tab to print or export.`);
+    }
   };
 
   return (
@@ -603,14 +654,24 @@ export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
               <button
                 type="submit"
                 id="submit-sale-button"
-                className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 transition flex items-center justify-center space-x-2 text-sm"
+                className="w-full py-3 px-4 bg-[#0C2D64] hover:bg-[#081e44] text-white font-bold rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm cursor-pointer"
               >
-                <Printer className="w-4 h-4" />
-                <span>Save & Issue Customer Receipt</span>
+                <Printer className="w-4 h-4 text-emerald-400" />
+                <span>Save &amp; Issue Customer Receipt</span>
+              </button>
+
+              <button
+                type="button"
+                id="create-quotation-from-pos"
+                onClick={handleSaveAsQuotation}
+                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-[#0C2D64] border-2 border-[#0C2D64] font-bold rounded-xl shadow-xs transition flex items-center justify-center space-x-2 text-xs cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-emerald-600" />
+                <span>Save Cart as Quotation / Cotation</span>
               </button>
 
               <p className="text-[11px] text-center text-slate-500">
-                Instantly updates inventory levels and records in daily summary log
+                Receipts deduct stock &amp; log sales. Quotations save price estimates for client sign-off.
               </p>
             </div>
           </div>

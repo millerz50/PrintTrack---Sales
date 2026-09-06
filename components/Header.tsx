@@ -14,10 +14,13 @@ import {
   MessageSquare,
   BarChart3,
   Bot,
-  Wrench
+  Wrench,
+  FileText
 } from 'lucide-react';
 import { User, DailyFinancialSummary } from '../types';
 import { CompanyInfo } from '../services/storage';
+import { MagenLogo } from './MagenLogo';
+import { AppTab } from '../hooks/useAppNavigation';
 
 interface HeaderProps {
   activeUser: User;
@@ -31,8 +34,8 @@ interface HeaderProps {
   onDateChange: (date: string) => void;
   summary: DailyFinancialSummary;
   lowStockCount: number;
-  activeTab: 'pos' | 'reports' | 'costs' | 'services' | 'inventory' | 'analytics' | 'chats';
-  setActiveTab: (tab: 'pos' | 'reports' | 'costs' | 'services' | 'inventory' | 'analytics' | 'chats') => void;
+  activeTab: AppTab;
+  setActiveTab: (tab: AppTab) => void;
   company: CompanyInfo;
   unreadChatsCount?: number;
 }
@@ -62,16 +65,14 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           {/* Brand & Tagline */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 ring-1 ring-white/20 flex-shrink-0">
-              <Printer className="w-6 h-6 text-white" />
-            </div>
+            <MagenLogo variant="monogram" size="md" lightText />
             <div>
               <div className="flex items-center space-x-2">
                 <h1 className="font-bold text-lg text-slate-100 tracking-tight leading-none">
                   {company.name}
                 </h1>
-                <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  Print POS & Stock
+                <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Media &amp; Print Solutions
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -228,7 +229,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setActiveTab('pos')}
             className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
               activeTab === 'pos'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-emerald-600 text-white shadow-sm font-semibold'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
@@ -237,11 +238,24 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <button
+            id="tab-quotations"
+            onClick={() => setActiveTab('quotations')}
+            className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'quotations'
+                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400 font-semibold'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <FileText className="w-4 h-4 text-emerald-400" />
+            <span>Quotations &amp; Cotation</span>
+          </button>
+
+          <button
             id="tab-reports"
             onClick={() => setActiveTab('reports')}
             className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
               activeTab === 'reports'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
@@ -254,12 +268,12 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setActiveTab('costs')}
             className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
               activeTab === 'costs'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
             <TrendingUp className="w-4 h-4" />
-            <span>Daily Costs & Expenses</span>
+            <span>Daily Costs &amp; Expenses</span>
           </button>
 
           {activeUser.role === 'admin' && (
@@ -268,12 +282,12 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => setActiveTab('services')}
               className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
                 activeTab === 'services'
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800'
               }`}
             >
               <Wrench className="w-4 h-4" />
-              <span>Services & Pricing</span>
+              <span>Services &amp; Pricing</span>
             </button>
           )}
 
@@ -282,12 +296,12 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setActiveTab('inventory')}
             className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
               activeTab === 'inventory'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
             <AlertTriangle className="w-4 h-4" />
-            <span>Inventory & Stock Depletion</span>
+            <span>Inventory &amp; Stock Depletion</span>
             {lowStockCount > 0 && (
               <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 font-bold text-[10px] flex items-center justify-center ml-1">
                 {lowStockCount}
@@ -300,12 +314,12 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setActiveTab('analytics')}
             className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
               activeTab === 'analytics'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
             <BarChart3 className="w-4 h-4" />
-            <span>Graphs & Financials</span>
+            <span>Graphs &amp; Financials</span>
           </button>
 
           <button
@@ -313,12 +327,12 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setActiveTab('chats')}
             className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
               activeTab === 'chats'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
             <MessageSquare className="w-4 h-4" />
-            <span>Workshop & AI Chat</span>
+            <span>Workshop &amp; AI Chat</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           </button>
         </nav>

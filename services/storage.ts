@@ -7,7 +7,10 @@ import {
   DailyFinancialSummary,
   PrintingCategory,
   ChatMessage,
-  ChatChannel
+  ChatChannel,
+  Quotation,
+  QuotationStatus,
+  PaymentMethod
 } from '../types';
 import {
   INITIAL_INVENTORY,
@@ -16,7 +19,8 @@ import {
   INITIAL_STOCK_MOVEMENTS,
   INITIAL_USERS,
   INITIAL_CHATS,
-  INITIAL_SERVICES
+  INITIAL_SERVICES,
+  INITIAL_QUOTATIONS
 } from '../data/initialData';
 
 const KEYS = {
@@ -29,7 +33,8 @@ const KEYS = {
   SYNC_QUEUE: 'print_track_sync_queue_v1',
   COMPANY_INFO: 'print_track_company_info_v1',
   CHATS: 'print_track_chats_v1',
-  SERVICES: 'print_track_services_v1'
+  SERVICES: 'print_track_services_v1',
+  QUOTATIONS: 'print_track_quotations_v1'
 };
 
 export interface CompanyInfo {
@@ -44,14 +49,14 @@ export interface CompanyInfo {
 }
 
 export const DEFAULT_COMPANY: CompanyInfo = {
-  name: 'Apex Print & Apparel Hub',
-  tagline: 'Custom Apparel, Commercial Printing & Bookcraft',
-  phone: '+1 (555) 345-PRINT / 0712 345 678',
-  email: 'orders@apexprinthub.com',
-  address: '42 Graphic Arts Boulevard, Suite 100',
+  name: 'Magen Integrated Solutions',
+  tagline: 'Media & Print Solutions | Environmental Consultancy',
+  phone: '+263 77 123 4567 / +263 71 987 6543',
+  email: 'orders@magensolutions.com',
+  address: 'Media & Print Hub, Environmental Consultancy Wing',
   currency: '$',
   taxRate: 0,
-  receiptFooter: 'Thank you for your business! Quality printed with precision.'
+  receiptFooter: 'Quality Media & Print Solutions | Environmental Consultancy. Thank you for partnering with Magen!'
 };
 
 export interface SyncQueueItem {
@@ -99,7 +104,21 @@ class StorageService {
   // Company Info
   public getCompanyInfo(): CompanyInfo {
     const data = localStorage.getItem(KEYS.COMPANY_INFO);
-    return data ? JSON.parse(data) : DEFAULT_COMPANY;
+    if (!data) {
+      this.saveCompanyInfo(DEFAULT_COMPANY);
+      return DEFAULT_COMPANY;
+    }
+    try {
+      const parsed = JSON.parse(data);
+      if (!parsed.name || parsed.name.includes('Apex') || parsed.name.includes('Print & Apparel')) {
+        const updated = { ...DEFAULT_COMPANY, ...parsed, name: DEFAULT_COMPANY.name, tagline: DEFAULT_COMPANY.tagline, receiptFooter: DEFAULT_COMPANY.receiptFooter };
+        this.saveCompanyInfo(updated);
+        return updated;
+      }
+      return parsed;
+    } catch {
+      return DEFAULT_COMPANY;
+    }
   }
 
   public saveCompanyInfo(info: CompanyInfo): void {
@@ -338,6 +357,113 @@ class StorageService {
     const sales = this.getSales().filter(s => s.id !== id);
     localStorage.setItem(KEYS.SALES, JSON.stringify(sales));
     this.notify();
+  }
+
+  // Quotations / Price Estimates
+  public getQuotations(): Quotation[] {
+    const data = localStorage.getItem(KEYS.QUOTATIONS);
+    if (!data) {
+      localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(INITIAL_QUOTATIONS));
+      return INITIAL_QUOTATIONS;
+    }
+    try {
+      return JSON.parse(data);
+    } catch {
+      return INITIAL_QUOTATIONS;
+    }
+  }
+
+  public getNextQuoteNumber(): string {
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const quotes = this.getQuotations();
+    const countToday = quotes.filter(q => q.date.replace(/-/g, '') === today).length;
+    const seq = String(countToday + 1).padStart(3, '0');
+    return `QT-${today}-${seq}`;
+  }
+
+  public saveQuotation(quote: Omit<Quotation, 'id' | 'createdAt'> & { id?: string }): Quotation {
+    const quotes = this.getQuotations();
+    if (quote.id) {
+      const idx = quotes.findIndex(q => q.id === quote.id);
+      if (idx >= 0) {
+        const updated: Quotation = {
+          ...quotes[idx],
+          ...quote,
+          id: quote.id
+        };
+        quotes[idx] = updated;
+        localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+        this.notify();
+        return updated;
+      }
+    }
+
+    const newQuote: Quotation = {
+      ...quote,
+      id: `quote_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      createdAt: new Date().toISOString()
+    };
+    quotes.unshift(newQuote);
+    localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+    this.notify();
+    return newQuote;
+  }
+
+  public updateQuotationStatus(id: string, status: QuotationStatus): void {
+    const quotes = this.getQuotations();
+    const quote = quotes.find(q => q.id === id);
+    if (quote) {
+      quote.status = status;
+      localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+      this.notify();
+    }
+  }
+
+  public deleteQuotation(id: string): void {
+    const quotes = this.getQuotations().filter(q => q.id !== id);
+    localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+    this.notify();
+  }
+
+  public convertQuotationToReceipt(quoteId: string, paymentMethod: PaymentMethod, teller: User): SaleReceipt | null {
+    const quotes = this.getQuotations();
+    const quote = quotes.find(q => q.id === quoteId);
+    if (!quote) return null;
+
+    // Convert quotation items to sale items
+    const saleItems = quote.items.map(item => ({
+      id: `item_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      inventoryItemId: item.inventoryItemId,
+      description: item.description,
+      category: item.category,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      totalPrice: item.totalPrice,
+      stockDeductionQty: item.inventoryItemId ? 1 : undefined
+    }));
+
+    const receipt = this.createSaleReceipt({
+      receiptNumber: this.getNextReceiptNumber(),
+      date: new Date().toISOString(),
+      customerName: quote.customerName,
+      customerPhone: quote.customerPhone,
+      items: saleItems,
+      subtotal: quote.subtotal,
+      discount: quote.discount || 0,
+      tax: quote.taxAmount || 0,
+      totalAmount: quote.totalAmount,
+      paymentMethod,
+      tellerId: teller.id,
+      tellerName: teller.name,
+      notes: `Converted from Quotation ${quote.quoteNumber}. ${quote.notes || ''}`
+    });
+
+    quote.status = 'Converted';
+    quote.convertedReceiptId = receipt.id;
+    localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+    this.notify();
+
+    return receipt;
   }
 
   // Daily Expenses
@@ -584,6 +710,7 @@ class StorageService {
     localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
     localStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(DEFAULT_COMPANY));
     localStorage.setItem(KEYS.CHATS, JSON.stringify(INITIAL_CHATS));
+    localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(INITIAL_QUOTATIONS));
     localStorage.setItem(KEYS.SYNC_QUEUE, JSON.stringify([]));
     this.notify();
   }

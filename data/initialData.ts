@@ -1,4 +1,4 @@
-import { InventoryItem, User, SaleReceipt, DailyExpense, StockMovement, PrintingCategory, ChatMessage, ServiceItem } from '../types';
+import { InventoryItem, User, SaleReceipt, DailyExpense, StockMovement, PrintingCategory, ChatMessage, ServiceItem, Quotation } from '../types';
 
 export const INITIAL_USERS: User[] = [
   {
@@ -600,3 +600,106 @@ export const INITIAL_CHATS: ChatMessage[] = [
     timestamp: '2026-08-26T08:15:15.000Z'
   }
 ];
+
+export const INITIAL_QUOTATIONS: Quotation[] = [
+  {
+    id: 'quote_101',
+    quoteNumber: 'QT-2026-0901',
+    date: '2026-09-01',
+    validUntil: '2026-09-15',
+    customerName: 'GreenEarth Conservation Initiative',
+    customerPhone: '+263 77 456 7890',
+    customerEmail: 'procurement@greenearth.org',
+    customerAddress: 'Sustainability Complex, Harare',
+    items: [
+      {
+        id: 'qitem_1',
+        description: 'Prospectus Report - Documentation (4 copies) Including Printing',
+        category: 'Book Printing',
+        quantity: 4,
+        unitPrice: 120.00,
+        totalPrice: 480.00,
+        unit: 'job',
+        notes: 'Full-colour high-resolution environmental compliance documentation'
+      },
+      {
+        id: 'qitem_2',
+        description: 'Environmental Consultancy Briefings (Paper Printing - Colour)',
+        category: 'Paper Printing',
+        quantity: 500,
+        unitPrice: 0.25,
+        totalPrice: 125.00,
+        unit: 'page'
+      },
+      {
+        id: 'qitem_3',
+        description: 'Spiral Binding & Heavy Matte Covers',
+        category: 'Book Printing',
+        quantity: 4,
+        unitPrice: 2.00,
+        totalPrice: 8.00,
+        unit: 'book'
+      }
+    ],
+    subtotal: 613.00,
+    discount: 20.00,
+    taxRate: 0,
+    taxAmount: 0,
+    totalAmount: 593.00,
+    status: 'Sent',
+    notes: 'Artwork files submitted. Turnaround time: 3 business days upon confirmation.',
+    terms: '50% deposit upon order confirmation. Balance payable upon delivery. Quotation valid for 14 calendar days.',
+    preparedBy: 'Sarah (Admin)',
+    createdAt: '2026-09-01T10:00:00.000Z'
+  },
+  {
+    id: 'quote_102',
+    quoteNumber: 'QT-2026-0904',
+    date: '2026-09-04',
+    validUntil: '2026-09-18',
+    customerName: 'Horizon Academy High School',
+    customerPhone: '+263 71 890 1234',
+    customerEmail: 'accounts@horizonacademy.ac.zw',
+    customerAddress: 'School Road, Avondale',
+    items: [
+      {
+        id: 'qitem_4',
+        description: 'Modules - History / FRS / Science (Full Term Set)',
+        category: 'Book Printing',
+        quantity: 60,
+        unitPrice: 6.00,
+        totalPrice: 360.00,
+        unit: 'module'
+      },
+      {
+        id: 'qitem_5',
+        description: 'Shona Novels / Set Books - O Level',
+        category: 'Other Services',
+        quantity: 80,
+        unitPrice: 5.00,
+        totalPrice: 400.00,
+        unit: 'book'
+      },
+      {
+        id: 'qitem_6',
+        description: 'Academic Reports - Secondary (Terminal Assessment)',
+        category: 'Other Services',
+        quantity: 120,
+        unitPrice: 3.00,
+        totalPrice: 360.00,
+        unit: 'report'
+      }
+    ],
+    subtotal: 1120.00,
+    discount: 40.00,
+    taxRate: 0,
+    taxAmount: 0,
+    totalAmount: 1080.00,
+    status: 'Accepted',
+    notes: 'Official school order approved by Principal.',
+    terms: 'Payment term: 50% advance, balance within 7 days of collection.',
+    preparedBy: 'David (Teller / Front Desk)',
+    createdAt: '2026-09-04T14:30:00.000Z'
+  }
+];
+

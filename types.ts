@@ -77,6 +77,43 @@ export interface SaleReceipt {
   createdAt: string;
 }
 
+export type QuotationStatus = 'Draft' | 'Sent' | 'Accepted' | 'Declined' | 'Converted';
+
+export interface QuotationItem {
+  id: string;
+  inventoryItemId?: string;
+  description: string;
+  category: PrintingCategory;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  unit?: string;
+  notes?: string;
+}
+
+export interface Quotation {
+  id: string;
+  quoteNumber: string; // e.g. "QT-2026-001"
+  date: string; // YYYY-MM-DD
+  validUntil: string; // YYYY-MM-DD
+  customerName: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  customerAddress?: string;
+  items: QuotationItem[];
+  subtotal: number;
+  taxRate?: number;
+  taxAmount?: number;
+  discount?: number;
+  totalAmount: number;
+  status: QuotationStatus;
+  notes?: string;
+  terms?: string;
+  preparedBy: string;
+  createdAt: string;
+  convertedReceiptId?: string;
+}
+
 export type ExpenseCategory =
   | 'Raw Materials & Stock'
   | 'Inks & Toners'

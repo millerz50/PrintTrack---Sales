@@ -7,6 +7,7 @@ import { getTodayDateString } from '@/data/initialData';
 
 export type AppTab =
   | 'pos'
+  | 'quotations'
   | 'reports'
   | 'costs'
   | 'services'

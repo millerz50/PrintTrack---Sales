@@ -12,6 +12,7 @@ import {
 import { SaleReceipt } from '../types';
 import { CompanyInfo } from '../services/storage';
 import { exportReceiptPDF } from '../services/pdfGenerator';
+import { MagenLogo } from './MagenLogo';
 
 interface ReceiptModalProps {
   receipt: SaleReceipt | null;
@@ -40,14 +41,14 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
     <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-150">
         {/* Modal Action Header */}
-        <div className="bg-slate-900 text-white px-4 py-3 flex items-center justify-between">
+        <div className="bg-[#0C2D64] text-white px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span className="font-bold text-xs">Sale Receipt Ready</span>
+            <span className="font-bold text-xs">Official Sale Receipt</span>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-lg transition"
+            className="text-slate-300 hover:text-white p-1 rounded-lg transition"
           >
             <X className="w-4 h-4" />
           </button>
@@ -56,8 +57,11 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
         {/* Paper Thermal Receipt Container */}
         <div className="p-6 bg-slate-50 border-b border-slate-200 font-mono text-xs text-slate-800 space-y-3">
           {/* Shop Header */}
-          <div className="text-center space-y-1">
-            <h3 className="font-bold text-sm tracking-tight text-slate-950 uppercase font-sans">
+          <div className="flex flex-col items-center text-center space-y-1">
+            <div className="mb-1">
+              <MagenLogo variant="monogram" size="sm" />
+            </div>
+            <h3 className="font-bold text-sm tracking-tight text-[#0C2D64] uppercase font-sans">
               {company.name}
             </h3>
             <p className="text-[10px] text-slate-500 font-sans">{company.tagline}</p>
@@ -163,18 +167,18 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           <button
             type="button"
             onClick={handleDownloadPDF}
-            className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition"
+            className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-[#0C2D64] hover:bg-[#081e44] text-white text-xs font-bold rounded-xl shadow-sm transition cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-emerald-400" />
             <span>Download PDF</span>
           </button>
 
           <button
             type="button"
             onClick={handlePrint}
-            className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-sm transition"
+            className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-[#388E3C] hover:bg-[#2e7d32] text-white text-xs font-bold rounded-xl shadow-sm transition cursor-pointer"
           >
-            <Printer className="w-3.5 h-3.5" />
+            <Printer className="w-3.5 h-3.5 text-white" />
             <span>Print Receipt</span>
           </button>
         </div>

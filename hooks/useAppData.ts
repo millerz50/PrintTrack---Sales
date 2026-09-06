@@ -12,6 +12,7 @@ import {
   InventoryItem,
   StockMovement,
   ServiceItem,
+  Quotation,
 } from '@/types';
 
 export function useAppData() {
@@ -25,9 +26,12 @@ export function useAppData() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
   const [services, setServices] = useState<ServiceItem[]>([]);
+  const [quotations, setQuotations] = useState<Quotation[]>([]);
 
   const [previewReceipt, setPreviewReceipt] =
     useState<SaleReceipt | null>(null);
+  const [previewQuotation, setPreviewQuotation] =
+    useState<Quotation | null>(null);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -43,6 +47,7 @@ export function useAppData() {
       setInventory(storage.getInventory());
       setStockMovements(storage.getStockMovements());
       setServices(storage.getServices());
+      setQuotations(storage.getQuotations());
     };
 
     load();
@@ -66,9 +71,13 @@ export function useAppData() {
     inventory,
     stockMovements,
     services,
+    quotations,
 
     previewReceipt,
     setPreviewReceipt,
+
+    previewQuotation,
+    setPreviewQuotation,
 
     isAuthModalOpen,
     setIsAuthModalOpen,

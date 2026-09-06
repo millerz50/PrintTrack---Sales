@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { SaleReceipt, DailyExpense, InventoryItem, DailyFinancialSummary } from '../types';
+import { SaleReceipt, DailyExpense, InventoryItem, DailyFinancialSummary, Quotation } from '../types';
 import { CompanyInfo } from './storage';
 
 export const exportDailySummaryPDF = (
@@ -294,45 +294,57 @@ export const exportReceiptPDF = (
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
-    format: [80, 200]
+    format: [80, 210]
   });
 
   const currency = company.currency || '$';
 
-  // Receipt Header
-  doc.setFontSize(12);
+  // Navy Brand Header Band
+  doc.setFillColor(12, 45, 100); // Magen Navy #0C2D64
+  doc.rect(0, 0, 80, 24, 'F');
+
+  // Green Accent Stripe
+  doc.setFillColor(56, 142, 60); // Magen Leaf Green #388E3C
+  doc.rect(0, 24, 80, 1.8, 'F');
+
+  // Header Text
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10.5);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  doc.text(company.name.toUpperCase(), 40, 10, { align: 'center' });
+  doc.text('MAGEN INTEGRATED SOLUTIONS', 40, 7.5, { align: 'center' });
+
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(220, 240, 225);
+  doc.text('MEDIA & PRINT SOLUTIONS | ENVIRONMENTAL CONSULTANCY', 40, 12, { align: 'center' });
+  doc.text(`Tel: ${company.phone}`, 40, 16, { align: 'center' });
+  doc.text(company.address, 40, 20, { align: 'center' });
+
+  // Receipt Title Badge
+  doc.setTextColor(12, 45, 100);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('OFFICIAL SALE RECEIPT', 40, 31, { align: 'center' });
+
+  // Receipt Metadata Card
+  doc.setFillColor(245, 248, 252);
+  doc.roundedRect(5, 34, 70, 19, 1.5, 1.5, 'F');
 
   doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.text(company.tagline, 40, 14, { align: 'center' });
-  doc.text(`Tel: ${company.phone}`, 40, 18, { align: 'center' });
-  doc.text(company.address, 40, 22, { align: 'center' });
-
-  doc.setLineDashPattern([1, 1], 0);
-  doc.line(5, 25, 75, 25);
-  doc.setLineDashPattern([], 0);
-
-  // Metadata
-  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
-  doc.text(`RECEIPT: ${receipt.receiptNumber}`, 5, 30);
+  doc.setTextColor(12, 45, 100);
+  doc.text(`RECEIPT: ${receipt.receiptNumber}`, 8, 39);
+
   doc.setFont('helvetica', 'normal');
-  doc.text(`Date: ${receipt.date.replace('T', ' ')}`, 5, 34);
-  doc.text(`Customer: ${receipt.customerName || 'Walk-in Client'}`, 5, 38);
+  doc.setTextColor(71, 85, 105);
+  doc.text(`Date: ${receipt.date.replace('T', ' ')}`, 8, 43.5);
+  doc.text(`Client: ${receipt.customerName || 'Walk-in Client'}`, 8, 48);
   if (receipt.customerPhone) {
-    doc.text(`Phone: ${receipt.customerPhone}`, 5, 42);
+    doc.text(`Phone: ${receipt.customerPhone}`, 44, 48);
   }
-  doc.text(`Teller: ${receipt.tellerName}`, 5, receipt.customerPhone ? 46 : 42);
+  doc.text(`Cashier / Teller: ${receipt.tellerName}`, 44, 43.5);
 
-  let currentY = receipt.customerPhone ? 50 : 46;
-
-  doc.setLineDashPattern([1, 1], 0);
-  doc.line(5, currentY, 75, currentY);
-  doc.setLineDashPattern([], 0);
-  currentY += 4;
+  let currentY = 56;
 
   // Items table
   const itemRows = receipt.items.map(item => [
@@ -346,8 +358,9 @@ export const exportReceiptPDF = (
     head: [['Item Description', 'Qty / Rate', 'Total']],
     body: itemRows,
     theme: 'plain',
-    headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontSize: 7, fontStyle: 'bold' },
-    bodyStyles: { fontSize: 6.5 },
+    headStyles: { fillColor: [12, 45, 100], textColor: [255, 255, 255], fontSize: 6.8, fontStyle: 'bold' },
+    bodyStyles: { fontSize: 6.5, textColor: [30, 41, 59] },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
     columnStyles: {
       0: { cellWidth: 35 },
       1: { cellWidth: 20 },
@@ -359,39 +372,286 @@ export const exportReceiptPDF = (
   // @ts-ignore
   currentY = doc.lastAutoTable.finalY + 4;
 
-  doc.setLineDashPattern([1, 1], 0);
+  doc.setDrawColor(203, 213, 225);
   doc.line(5, currentY, 75, currentY);
-  doc.setLineDashPattern([], 0);
   currentY += 4;
 
-  // Totals
-  doc.setFontSize(8);
+  // Totals Breakdown
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
   doc.text('Subtotal:', 40, currentY);
   doc.text(`${currency}${receipt.subtotal.toFixed(2)}`, 75, currentY, { align: 'right' });
   currentY += 4;
 
   if (receipt.discount > 0) {
+    doc.setTextColor(185, 28, 28);
     doc.text('Discount:', 40, currentY);
     doc.text(`-${currency}${receipt.discount.toFixed(2)}`, 75, currentY, { align: 'right' });
     currentY += 4;
   }
 
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('TOTAL:', 40, currentY);
-  doc.text(`${currency}${receipt.totalAmount.toFixed(2)}`, 75, currentY, { align: 'right' });
-  currentY += 5;
+  if (receipt.tax > 0) {
+    doc.setTextColor(71, 85, 105);
+    doc.text('Tax / VAT:', 40, currentY);
+    doc.text(`${currency}${receipt.tax.toFixed(2)}`, 75, currentY, { align: 'right' });
+    currentY += 4;
+  }
 
-  doc.setFontSize(7.5);
+  // TOTAL Box
+  doc.setFillColor(12, 45, 100);
+  doc.roundedRect(36, currentY - 1, 39, 7.5, 1, 1, 'F');
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('TOTAL PAID:', 38, currentY + 4);
+  doc.text(`${currency}${receipt.totalAmount.toFixed(2)}`, 73, currentY + 4, { align: 'right' });
+  currentY += 10;
+
+  // Payment method badge
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Paid via: ${receipt.paymentMethod}`, 5, currentY);
+  doc.setTextColor(56, 142, 60); // Green
+  doc.text(`✓ Paid in Full via ${receipt.paymentMethod}`, 5, currentY);
   currentY += 6;
 
-  // Footer
-  doc.setFontSize(7);
+  // Footer & Disclaimer
+  doc.setFontSize(6.5);
+  doc.setTextColor(100, 116, 139);
   doc.text(company.receiptFooter, 40, currentY, { align: 'center', maxWidth: 70 });
   currentY += 6;
-  doc.text('*** CUSTOMER COPY ***', 40, currentY, { align: 'center' });
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(12, 45, 100);
+  doc.text('*** THANK YOU FOR YOUR VALUED BUSINESS ***', 40, currentY, { align: 'center' });
 
   doc.save(`Receipt_${receipt.receiptNumber}.pdf`);
 };
+
+export const exportQuotationPDF = (
+  quotation: Quotation,
+  company: CompanyInfo
+) => {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const currency = company.currency || '$';
+
+  // --- BRAND HEADER BANNER ---
+  // Navy banner
+  doc.setFillColor(12, 45, 100); // Magen Navy #0C2D64
+  doc.rect(0, 0, 210, 36, 'F');
+
+  // Eco-Green stripe
+  doc.setFillColor(56, 142, 60); // Magen Green #388E3C
+  doc.rect(0, 36, 210, 2.5, 'F');
+
+  // Header Typography
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('MAGEN INTEGRATED SOLUTIONS', 14, 15);
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(180, 230, 195);
+  doc.text('MEDIA & PRINT SOLUTIONS | ENVIRONMENTAL CONSULTANCY', 14, 21);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(220, 230, 245);
+  doc.text(`Tel: ${company.phone}  |  Email: ${company.email}  |  Address: ${company.address}`, 14, 27);
+  doc.text('Commercial Printing • Publishing • Branding • Environmental Impact Assessments', 14, 32);
+
+  // --- QUOTATION BADGE & TITLE ---
+  doc.setFillColor(245, 248, 253);
+  doc.roundedRect(14, 43, 182, 34, 2, 2, 'F');
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(14, 43, 182, 34, 2, 2, 'D');
+
+  // Left column: Quotation Title & Meta
+  doc.setTextColor(12, 45, 100);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('PRICE ESTIMATE & FORMAL QUOTATION', 20, 52);
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(56, 142, 60);
+  doc.text(`QUOTE REF: ${quotation.quoteNumber}`, 20, 58);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text(`Date of Issue: ${quotation.date}`, 20, 64);
+  doc.text(`Valid Until: ${quotation.validUntil} (14 Days)`, 20, 69);
+  doc.text(`Prepared By: ${quotation.preparedBy}`, 20, 74);
+
+  // Right column: Customer Information
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(12, 45, 100);
+  doc.text('QUOTATION PREPARED FOR:', 108, 52);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(quotation.customerName, 108, 58);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  if (quotation.customerPhone) {
+    doc.text(`Phone: ${quotation.customerPhone}`, 108, 64);
+  }
+  if (quotation.customerEmail) {
+    doc.text(`Email: ${quotation.customerEmail}`, 108, 69);
+  }
+  if (quotation.customerAddress) {
+    doc.text(`Address: ${quotation.customerAddress}`, 108, 74);
+  }
+
+  let currentY = 82;
+
+  // --- ITEM TABLE ---
+  const itemRows = quotation.items.map((item, index) => [
+    `${index + 1}`,
+    item.description + (item.notes ? `\nNote: ${item.notes}` : ''),
+    item.category,
+    `${item.quantity} ${item.unit || 'units'}`,
+    `${currency}${item.unitPrice.toFixed(2)}`,
+    `${currency}${item.totalPrice.toFixed(2)}`
+  ]);
+
+  autoTable(doc, {
+    startY: currentY,
+    head: [['#', 'Service Description / Specifications', 'Category', 'Quantity', 'Unit Rate', 'Total Amount']],
+    body: itemRows,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [12, 45, 100], // Magen Navy
+      textColor: [255, 255, 255],
+      fontSize: 8,
+      fontStyle: 'bold',
+      halign: 'left'
+    },
+    bodyStyles: {
+      fontSize: 8,
+      textColor: [30, 41, 59]
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 253]
+    },
+    columnStyles: {
+      0: { cellWidth: 10, halign: 'center' },
+      1: { cellWidth: 80 },
+      2: { cellWidth: 35 },
+      3: { cellWidth: 22, halign: 'center' },
+      4: { cellWidth: 20, halign: 'right' },
+      5: { cellWidth: 25, halign: 'right', fontStyle: 'bold' }
+    },
+    margin: { left: 14, right: 14 }
+  });
+
+  // @ts-ignore
+  currentY = doc.lastAutoTable.finalY + 6;
+
+  // Check page overflow
+  if (currentY > 210) {
+    doc.addPage();
+    currentY = 25;
+  }
+
+  // --- TOTALS CALCULATION BOX ---
+  const totalsX = 120;
+  const totalsW = 76;
+
+  doc.setFillColor(248, 250, 253);
+  doc.roundedRect(totalsX, currentY, totalsW, 36, 1.5, 1.5, 'F');
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(totalsX, currentY, totalsW, 36, 1.5, 1.5, 'D');
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('Subtotal:', totalsX + 6, currentY + 7);
+  doc.text(`${currency}${quotation.subtotal.toFixed(2)}`, totalsX + totalsW - 6, currentY + 7, { align: 'right' });
+
+  let lineY = currentY + 13;
+  if (quotation.discount && quotation.discount > 0) {
+    doc.setTextColor(185, 28, 28);
+    doc.text('Discount Applied:', totalsX + 6, lineY);
+    doc.text(`-${currency}${quotation.discount.toFixed(2)}`, totalsX + totalsW - 6, lineY, { align: 'right' });
+    lineY += 6;
+  }
+
+  if (quotation.taxAmount && quotation.taxAmount > 0) {
+    doc.setTextColor(71, 85, 105);
+    doc.text(`VAT / Tax (${quotation.taxRate || 0}%):`, totalsX + 6, lineY);
+    doc.text(`${currency}${quotation.taxAmount.toFixed(2)}`, totalsX + totalsW - 6, lineY, { align: 'right' });
+    lineY += 6;
+  }
+
+  // Highlighted Grand Total
+  doc.setFillColor(12, 45, 100);
+  doc.roundedRect(totalsX + 4, lineY, totalsW - 8, 9, 1, 1, 'F');
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('TOTAL QUOTE:', totalsX + 8, lineY + 6);
+  doc.text(`${currency}${quotation.totalAmount.toFixed(2)}`, totalsX + totalsW - 8, lineY + 6, { align: 'right' });
+
+  // --- TERMS & CONDITIONS BOX (Left side) ---
+  const termsW = 100;
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(14, currentY, termsW, 36, 1.5, 1.5, 'F');
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(14, currentY, termsW, 36, 1.5, 1.5, 'D');
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(12, 45, 100);
+  doc.text('Terms & Order Conditions:', 18, currentY + 6);
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  const termsText = quotation.terms ||
+    '1. Valid for 14 calendar days from date of issue.\n' +
+    '2. 50% deposit required upon proof approval; balance upon final delivery.\n' +
+    '3. Production turnaround starts once artwork is approved and deposit is received.\n' +
+    '4. Eco-friendly inks and certified paper stocks are used by Magen Integrated Solutions.';
+
+  doc.text(termsText, 18, currentY + 11, { maxWidth: termsW - 8, lineHeightFactor: 1.4 });
+
+  currentY += 45;
+
+  // --- SIGNATURES & ACCEPTANCE ---
+  doc.setDrawColor(180, 195, 215);
+  doc.line(14, currentY + 14, 85, currentY + 14);
+  doc.line(125, currentY + 14, 196, currentY + 14);
+
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(12, 45, 100);
+  doc.text('Authorized Signatory & Official Stamp', 14, currentY + 19);
+  doc.text('Client Acceptance Signature & Date', 125, currentY + 19);
+
+  doc.setFontSize(6.8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text('Magen Integrated Solutions Management', 14, currentY + 23);
+  doc.text('I confirm acceptance of the quoted scope & terms above', 125, currentY + 23);
+
+  // Footer bar
+  doc.setFillColor(12, 45, 100);
+  doc.rect(0, 288, 210, 9, 'F');
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(255, 255, 255);
+  doc.text(`${company.name}  •  ${company.tagline}  •  ${company.phone}  •  ${company.email}`, 105, 293.5, { align: 'center' });
+
+  doc.save(`Quotation_${quotation.quoteNumber}_${company.name.replace(/\s+/g, '_')}.pdf`);
+};
+
