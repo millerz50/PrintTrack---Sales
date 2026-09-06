@@ -14,6 +14,7 @@ import { ReceiptModal } from '@/components/ReceiptModal';
 import { AuthModal } from '@/components/AuthModal';
 import { SettingsModal } from '@/components/SettingsModal';
 import { OfflineSyncBanner } from '@/components/OfflineSyncBanner';
+import { ServiceManager } from '@/components/ServiceManager';
 
 import { storage, CompanyInfo } from '@/services/storage';
 
@@ -23,6 +24,7 @@ import {
   DailyExpense,
   InventoryItem,
   StockMovement,
+  ServiceItem,
   DailyFinancialSummary,
 } from '@/types';
 
@@ -56,6 +58,8 @@ export default function HomePage() {
     []
   );
 
+  const [services, setServices] = useState<ServiceItem[]>([]);
+
   // ============================================================
   // Date & Navigation State
   // ============================================================
@@ -65,7 +69,7 @@ export default function HomePage() {
   );
 
   const [activeTab, setActiveTab] = useState<
-    'pos' | 'reports' | 'costs' | 'inventory' | 'analytics' | 'chats'
+    'pos' | 'reports' | 'costs' | 'services' | 'inventory' | 'analytics' | 'chats'
   >('pos');
 
   // ============================================================
@@ -115,6 +119,8 @@ export default function HomePage() {
 
     setStockMovements(storage.getStockMovements());
 
+    setServices(storage.getServices());
+
     setIsOnline(storage.getOnlineStatus());
 
     setPendingSyncCount(storage.getPendingSyncCount());
@@ -131,6 +137,8 @@ export default function HomePage() {
       setInventory(storage.getInventory());
 
       setStockMovements(storage.getStockMovements());
+
+      setServices(storage.getServices());
 
       setCompany(storage.getCompanyInfo());
 
@@ -280,6 +288,7 @@ export default function HomePage() {
         {activeTab === 'pos' && (
           <POSReceiptEntry
             inventory={inventory}
+            services={services}
             activeUser={activeUser}
             company={company}
             onReceiptCreated={handleReceiptCreated}
@@ -329,6 +338,15 @@ export default function HomePage() {
         {/* ======================================================
             Tab 4: Inventory
             ====================================================== */}
+
+        {activeTab === 'services' && activeUser.role === 'admin' && (
+          <ServiceManager
+            services={services}
+            inventory={inventory}
+            activeUser={activeUser}
+            company={company}
+          />
+        )}
 
         {activeTab === 'inventory' && (
           <InventoryManager

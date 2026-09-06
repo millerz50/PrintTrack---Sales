@@ -1,4 +1,4 @@
-import { InventoryItem, User, SaleReceipt, DailyExpense, StockMovement, PrintingCategory, ChatMessage } from '../types';
+import { InventoryItem, User, SaleReceipt, DailyExpense, StockMovement, PrintingCategory, ChatMessage, ServiceItem } from '../types';
 
 export const INITIAL_USERS: User[] = [
   {
@@ -195,84 +195,52 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
   }
 ];
 
-export const SERVICE_PRESETS: {
-  title: string;
-  category: PrintingCategory;
-  defaultPrice: number;
-  unit: string;
-  inventoryItemId?: string;
-}[] = [
-  {
-    title: 'Custom White T-Shirt Print (DTF Single Side)',
-    category: 'T-Shirt Printing',
-    defaultPrice: 14.50,
-    unit: 'piece',
-    inventoryItemId: 'inv_1'
-  },
-  {
-    title: 'Black T-Shirt Full Front + Back Branding',
-    category: 'T-Shirt Printing',
-    defaultPrice: 19.00,
-    unit: 'piece',
-    inventoryItemId: 'inv_2'
-  },
-  {
-    title: 'A4 Color Flyers (Double-Sided 130gsm)',
-    category: 'Paper Printing',
-    defaultPrice: 0.45,
-    unit: 'sheet',
-    inventoryItemId: 'inv_4'
-  },
-  {
-    title: 'Business Cards (350gsm Matte Lam / 100pcs)',
-    category: 'Paper Printing',
-    defaultPrice: 22.00,
-    unit: 'box',
-    inventoryItemId: 'inv_5'
-  },
-  {
-    title: 'Spiral Bound Project Report (50-100 pages)',
-    category: 'Book Printing',
-    defaultPrice: 12.50,
-    unit: 'book',
-    inventoryItemId: 'inv_7'
-  },
-  {
-    title: 'Hardcover Thesis / Annual Report Binding',
-    category: 'Book Printing',
-    defaultPrice: 28.00,
-    unit: 'book',
-    inventoryItemId: 'inv_8'
-  },
-  {
-    title: 'Roll-up Banner Stand (85cm x 200cm + Print)',
-    category: 'Banners & Signage',
-    defaultPrice: 65.00,
-    unit: 'stand',
-    inventoryItemId: 'inv_9'
-  },
-  {
-    title: 'Branded Ceramic Coffee Mug (Sublimated)',
-    category: 'Merchandise & Branding',
-    defaultPrice: 7.50,
-    unit: 'mug',
-    inventoryItemId: 'inv_10'
-  },
-  {
-    title: 'A4 Glossy Document Lamination',
-    category: 'Photocopy & Lamination',
-    defaultPrice: 1.50,
-    unit: 'sheet',
-    inventoryItemId: 'inv_11'
-  },
-  {
-    title: 'High-Volume B&W Document Photocopying',
-    category: 'Photocopy & Lamination',
-    defaultPrice: 0.08,
-    unit: 'page',
-    inventoryItemId: 'inv_4'
-  }
+export const INITIAL_SERVICES: ServiceItem[] = [
+  { id: 'svc_001', code: 'SVC-001', name: 'T-Shirt Printing (General)', category: 'T-Shirt Printing', unit: 'shirt', price: 3, active: true },
+  { id: 'svc_002', code: 'SVC-002', name: 'Paper Printing - Black & White', category: 'Paper Printing', unit: 'page', price: 0.20, active: true },
+  { id: 'svc_003', code: 'SVC-003', name: 'Paper Printing - Colour', category: 'Paper Printing', unit: 'page', price: 0.25, active: true },
+  { id: 'svc_004', code: 'SVC-004', name: 'Bulk Printing (30 copies / 200+ pages)', category: 'Paper Printing', unit: '30 copies', price: 1, active: true },
+  { id: 'svc_005', code: 'SVC-005', name: 'Modules - BET / Commerce', category: 'Book Printing', unit: 'module', price: 10, active: true },
+  { id: 'svc_006', code: 'SVC-006', name: 'Modules - History / FRS / Science', category: 'Book Printing', unit: 'module', price: 6, active: true },
+  { id: 'svc_007', code: 'SVC-007', name: 'Schemes of Work', category: 'Book Printing', unit: 'set', price: 6, active: true },
+  { id: 'svc_008', code: 'SVC-008', name: 'Spiral Binding', category: 'Book Printing', unit: 'book', price: 2, active: true },
+  { id: 'svc_009', code: 'SVC-009', name: 'A4 Photo Printing - Without Frame', category: 'Photocopy & Lamination', unit: 'photo', price: 2, active: true },
+  { id: 'svc_010', code: 'SVC-010', name: 'A4 Photo Printing - With Picture Frame', category: 'Photocopy & Lamination', unit: 'photo', price: 5, active: true },
+  { id: 'svc_011', code: 'SVC-011', name: 'Shona Novels / Set Books - O Level', category: 'Other Services', unit: 'book', price: 5, active: true },
+  { id: 'svc_012', code: 'SVC-012', name: 'Shona Novels / Set Books - A Level (Option 1)', category: 'Other Services', unit: 'book', price: 6, active: true },
+  { id: 'svc_013', code: 'SVC-013', name: 'Shona Novels / Set Books - A Level (Option 2)', category: 'Other Services', unit: 'book', price: 7, active: true },
+  { id: 'svc_014', code: 'SVC-014', name: 'Typing', category: 'Other Services', unit: 'page', price: 1, active: true },
+  { id: 'svc_015', code: 'SVC-015', name: 'Academic Reports - Primary', category: 'Other Services', unit: 'report', price: 3, active: true },
+  { id: 'svc_016', code: 'SVC-016', name: 'Academic Reports - Secondary', category: 'Other Services', unit: 'report', price: 3, active: true },
+  { id: 'svc_017', code: 'SVC-017', name: 'Thesis Printing - Black & White', category: 'Book Printing', unit: '100 pages', price: 16, active: true },
+  { id: 'svc_018', code: 'SVC-018', name: 'Thesis Printing - Colour', category: 'Book Printing', unit: '100 pages', price: 18, active: true },
+  { id: 'svc_019', code: 'SVC-019', name: 'School ID', category: 'Other Services', unit: 'card', price: 3, active: true },
+  { id: 'svc_020', code: 'SVC-020', name: 'Report Book', category: 'Other Services', unit: 'book', price: 0, active: false, notes: 'Price is not clearly visible on the handwritten list; activate after admin enters the confirmed price.' },
+  { id: 'svc_021', code: 'SVC-021', name: 'Passport Size Photos', category: 'Photocopy & Lamination', unit: 'set', price: 2, active: true },
+  { id: 'svc_022', code: 'SVC-022', name: 'Business Cards', category: 'Paper Printing', unit: '100 cards', price: 7, active: true },
+  { id: 'svc_023', code: 'SVC-023', name: 'Scanning', category: 'Other Services', unit: 'page', price: 0.50, active: true },
+  { id: 'svc_024', code: 'SVC-024', name: 'A4 Photocopying - Black & White (10 pages)', category: 'Photocopy & Lamination', unit: '10 pages', price: 1, active: true },
+  { id: 'svc_025', code: 'SVC-025', name: 'A4 Photocopying - Colour (10 pages)', category: 'Photocopy & Lamination', unit: '10 pages', price: 2, active: true },
+  { id: 'svc_026', code: 'SVC-026', name: 'A3 Paper Printing', category: 'Paper Printing', unit: 'page', price: 0, active: false, notes: 'Price was not clearly visible on the handwritten list; enter the price from Services.' },
+  { id: 'svc_027', code: 'SVC-027', name: 'Laminating', category: 'Photocopy & Lamination', unit: 'copy', price: 1, active: true },
+  { id: 'svc_028', code: 'SVC-028', name: 'Prospectus Report - Documentation (4 copies) Including Printing', category: 'Book Printing', unit: 'job', price: 120, active: true },
+  { id: 'svc_029', code: 'SVC-029', name: 'Prospectus Report - Binding Only', category: 'Book Printing', unit: 'job', price: 20, active: true },
+  { id: 'svc_030', code: 'SVC-030', name: 'Prospectus Report - Printing Only', category: 'Paper Printing', unit: 'job', price: 40, active: true },
+  { id: 'svc_031', code: 'SVC-031', name: 'Quarterly Progress Report - Quarterly', category: 'Paper Printing', unit: 'quarter', price: 50, active: true },
+  { id: 'svc_032', code: 'SVC-032', name: 'Quarterly Progress Report - Annual', category: 'Paper Printing', unit: 'annual', price: 190, active: true },
+  { id: 'svc_033', code: 'SVC-033', name: 'End-of-Term Report Binding + Printing', category: 'Book Printing', unit: 'job', price: 90, active: true },
+  { id: 'svc_034', code: 'SVC-034', name: 'Prospectus Amendments', category: 'Other Services', unit: 'job', price: 120, active: true },
+  { id: 'svc_035', code: 'SVC-035', name: 'Academic Report Binding', category: 'Book Printing', unit: 'report', price: 0, active: false, notes: 'Price not shown clearly on the handwritten list; admin can enter it.' }
 ];
+
+// Kept as a compatibility alias for older code. New receipts should read from storage.getServices().
+export const SERVICE_PRESETS = INITIAL_SERVICES.map(service => ({
+  title: service.name,
+  category: service.category,
+  defaultPrice: service.price,
+  unit: service.unit,
+  inventoryItemId: service.inventoryItemId
+}));
 
 // Helper to get today's date formatted as YYYY-MM-DD
 export const getTodayDateString = () => new Date().toISOString().split('T')[0];

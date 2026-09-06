@@ -15,7 +15,8 @@ import {
   INITIAL_EXPENSES,
   INITIAL_STOCK_MOVEMENTS,
   INITIAL_USERS,
-  INITIAL_CHATS
+  INITIAL_CHATS,
+  INITIAL_SERVICES
 } from '../data/initialData';
 
 const KEYS = {
@@ -27,7 +28,8 @@ const KEYS = {
   ACTIVE_USER: 'print_track_active_user_v1',
   SYNC_QUEUE: 'print_track_sync_queue_v1',
   COMPANY_INFO: 'print_track_company_info_v1',
-  CHATS: 'print_track_chats_v1'
+  CHATS: 'print_track_chats_v1',
+  SERVICES: 'print_track_services_v1'
 };
 
 export interface CompanyInfo {
@@ -110,6 +112,7 @@ class StorageService {
     const data = localStorage.getItem(KEYS.USERS);
     if (!data) {
       localStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
+    localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
       return INITIAL_USERS;
     }
     return JSON.parse(data);
@@ -127,6 +130,40 @@ class StorageService {
 
   public setActiveUser(user: User): void {
     localStorage.setItem(KEYS.ACTIVE_USER, JSON.stringify(user));
+    this.notify();
+  }
+
+  // Services & Pricing
+  public getServices(): import('../types').ServiceItem[] {
+    const data = localStorage.getItem(KEYS.SERVICES);
+    if (!data) {
+      localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
+      return INITIAL_SERVICES;
+    }
+    return JSON.parse(data);
+  }
+
+  public saveService(service: import('../types').ServiceItem): void {
+    const list = this.getServices();
+    const index = list.findIndex(s => s.id === service.id);
+    if (index >= 0) list[index] = service;
+    else list.push(service);
+    localStorage.setItem(KEYS.SERVICES, JSON.stringify(list));
+    this.notify();
+  }
+
+  public deleteService(id: string): void {
+    const list = this.getServices().filter(s => s.id !== id);
+    localStorage.setItem(KEYS.SERVICES, JSON.stringify(list));
+    this.notify();
+  }
+
+  public toggleService(id: string): void {
+    const list = this.getServices();
+    const service = list.find(s => s.id === id);
+    if (!service) return;
+    service.active = !service.active;
+    localStorage.setItem(KEYS.SERVICES, JSON.stringify(list));
     this.notify();
   }
 
@@ -544,6 +581,7 @@ class StorageService {
     localStorage.setItem(KEYS.EXPENSES, JSON.stringify(INITIAL_EXPENSES));
     localStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(INITIAL_STOCK_MOVEMENTS));
     localStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
+    localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
     localStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(DEFAULT_COMPANY));
     localStorage.setItem(KEYS.CHATS, JSON.stringify(INITIAL_CHATS));
     localStorage.setItem(KEYS.SYNC_QUEUE, JSON.stringify([]));

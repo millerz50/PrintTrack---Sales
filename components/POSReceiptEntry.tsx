@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Plus,
   Trash2,
@@ -18,13 +18,14 @@ import {
   PrintingCategory,
   PaymentMethod,
   InventoryItem,
-  User
+  User,
+  ServiceItem
 } from '../types';
-import { SERVICE_PRESETS } from '../data/initialData';
 import { storage, CompanyInfo } from '../services/storage';
 
 interface POSReceiptEntryProps {
   inventory: InventoryItem[];
+  services: ServiceItem[];
   activeUser: User;
   company: CompanyInfo;
   onReceiptCreated: (receipt: SaleReceipt) => void;
@@ -49,11 +50,14 @@ const PAYMENT_METHODS: PaymentMethod[] = [
 
 export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
   inventory,
+  services,
   activeUser,
   company,
   onReceiptCreated
 }) => {
   const currency = company.currency || '$';
+
+  const activeServices = useMemo(() => services.filter(s => s.active), [services]);
 
   // Receipt form states
   const [customerName, setCustomerName] = useState('');
@@ -71,27 +75,25 @@ export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
   const [items, setItems] = useState<SaleItem[]>([
     {
       id: `item_${Date.now()}_1`,
-      description: 'Custom White T-Shirt Print (DTF Single Side)',
+      description: '',
       category: 'T-Shirt Printing',
-      quantity: 5,
-      unitPrice: 14.50,
-      totalPrice: 72.50,
-      inventoryItemId: 'inv_1',
-      stockDeductionQty: 1
+      quantity: 1,
+      unitPrice: 0,
+      totalPrice: 0
     }
   ]);
 
   // Selected quick preset helper
-  const handleAddPreset = (preset: typeof SERVICE_PRESETS[0]) => {
+  const handleAddService = (service: ServiceItem) => {
     const newItem: SaleItem = {
       id: `item_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-      description: preset.title,
-      category: preset.category,
+      description: service.name,
+      category: service.category,
       quantity: 1,
-      unitPrice: preset.defaultPrice,
-      totalPrice: preset.defaultPrice,
-      inventoryItemId: preset.inventoryItemId,
-      stockDeductionQty: preset.inventoryItemId ? 1 : 0
+      unitPrice: service.price,
+      totalPrice: service.price,
+      inventoryItemId: service.inventoryItemId,
+      stockDeductionQty: service.inventoryItemId ? 1 : 0
     };
     setItems(prev => [...prev, newItem]);
   };
@@ -220,51 +222,42 @@ export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
           <div className="flex items-center space-x-2">
             <Sparkles className="w-4 h-4 text-indigo-600" />
             <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
-              Quick Printing Presets
+              Quick Services
             </h2>
           </div>
           <span className="text-xs text-slate-500">
-            Click to auto-populate receipt line items
+            Admin-managed services & prices — click to add
           </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-          {SERVICE_PRESETS.map((preset, index) => {
-            const inv = inventory.find(i => i.id === preset.inventoryItemId);
+          {activeServices.map(service => {
+            const inv = inventory.find(i => i.id === service.inventoryItemId);
             const isLowStock = inv && inv.currentStock <= inv.minThreshold;
 
             return (
               <button
-                key={index}
+                key={service.id}
                 type="button"
-                onClick={() => handleAddPreset(preset)}
+                onClick={() => handleAddService(service)}
                 className="text-left p-2.5 rounded-lg border border-slate-200 hover:border-indigo-400 bg-slate-50/70 hover:bg-indigo-50/50 transition flex flex-col justify-between group h-full shadow-xs"
               >
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-1">
                     <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
-                      {preset.category.split(' ')[0]}
+                      {service.code}
                     </span>
                     {inv && (
-                      <span
-                        className={`text-[10px] font-bold ${
-                          isLowStock ? 'text-amber-600' : 'text-slate-500'
-                        }`}
-                        title={`Current available stock: ${inv.currentStock} ${inv.unit}`}
-                      >
+                      <span className={`text-[10px] font-bold ${isLowStock ? 'text-amber-600' : 'text-slate-500'}`} title={`Current available stock: ${inv.currentStock} ${inv.unit}`}>
                         {inv.currentStock} left
                       </span>
                     )}
                   </div>
-                  <p className="text-xs font-semibold text-slate-800 mt-1.5 line-clamp-2 group-hover:text-indigo-700">
-                    {preset.title}
-                  </p>
+                  <p className="text-xs font-semibold text-slate-800 mt-1.5 line-clamp-2 group-hover:text-indigo-700">{service.name}</p>
                 </div>
                 <div className="mt-2 text-xs font-bold text-indigo-600">
-                  {currency}{preset.defaultPrice.toFixed(2)}
-                  <span className="text-[10px] font-normal text-slate-500 ml-0.5">
-                    /{preset.unit}
-                  </span>
+                  {currency}{service.price.toFixed(2)}
+                  <span className="text-[10px] font-normal text-slate-500 ml-0.5">/{service.unit}</span>
                 </div>
               </button>
             );

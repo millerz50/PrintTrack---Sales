@@ -13,7 +13,8 @@ import {
   Sliders,
   MessageSquare,
   BarChart3,
-  Bot
+  Bot,
+  Wrench
 } from 'lucide-react';
 import { User, DailyFinancialSummary } from '../types';
 import { CompanyInfo } from '../services/storage';
@@ -30,8 +31,8 @@ interface HeaderProps {
   onDateChange: (date: string) => void;
   summary: DailyFinancialSummary;
   lowStockCount: number;
-  activeTab: 'pos' | 'reports' | 'costs' | 'inventory' | 'analytics' | 'chats';
-  setActiveTab: (tab: 'pos' | 'reports' | 'costs' | 'inventory' | 'analytics' | 'chats') => void;
+  activeTab: 'pos' | 'reports' | 'costs' | 'services' | 'inventory' | 'analytics' | 'chats';
+  setActiveTab: (tab: 'pos' | 'reports' | 'costs' | 'services' | 'inventory' | 'analytics' | 'chats') => void;
   company: CompanyInfo;
   unreadChatsCount?: number;
 }
@@ -260,6 +261,21 @@ export const Header: React.FC<HeaderProps> = ({
             <TrendingUp className="w-4 h-4" />
             <span>Daily Costs & Expenses</span>
           </button>
+
+          {activeUser.role === 'admin' && (
+            <button
+              id="tab-services"
+              onClick={() => setActiveTab('services')}
+              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'services'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Wrench className="w-4 h-4" />
+              <span>Services & Pricing</span>
+            </button>
+          )}
 
           <button
             id="tab-inventory"

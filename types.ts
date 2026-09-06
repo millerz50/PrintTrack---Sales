@@ -17,6 +17,19 @@ export type PrintingCategory =
   | 'Photocopy & Lamination'
   | 'Other Services';
 
+
+export interface ServiceItem {
+  id: string;
+  code: string;
+  name: string;
+  category: PrintingCategory;
+  unit: string;
+  price: number;
+  active: boolean;
+  inventoryItemId?: string;
+  notes?: string;
+}
+
 export interface InventoryItem {
   id: string;
   name: string;
