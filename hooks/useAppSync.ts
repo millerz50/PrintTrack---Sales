@@ -25,7 +25,7 @@ export function useAppSync() {
     setIsSyncing(true);
 
     try {
-      await storage.processSyncQueue();
+      await storage.triggerManualSync();
     } finally {
       setIsSyncing(false);
     }

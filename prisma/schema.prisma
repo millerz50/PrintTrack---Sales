@@ -1,0 +1,155 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  role      String   @default("teller") // "admin" | "teller"
+  pin       String   @default("1234")
+  email     String?
+  avatar    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Company {
+  id            String   @id @default("default")
+  name          String
+  tagline       String
+  phone         String
+  email         String
+  address       String
+  currency      String   @default("$")
+  taxRate       Float    @default(0)
+  receiptFooter String
+  updatedAt     DateTime @updatedAt
+}
+
+model SaleReceipt {
+  id            String     @id
+  receiptNumber String     @unique
+  date          String
+  customerName  String?
+  customerPhone String?
+  subtotal      Float
+  discount      Float      @default(0)
+  tax           Float      @default(0)
+  totalAmount   Float
+  paymentMethod String
+  tellerId      String
+  tellerName    String
+  notes         String?
+  synced        Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  items         SaleItem[]
+}
+
+model SaleItem {
+  id                String      @id
+  receiptId         String
+  inventoryItemId   String?
+  description       String
+  category          String
+  quantity          Int
+  unitPrice         Float
+  totalPrice        Float
+  stockDeductionQty Float?
+  receipt           SaleReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+}
+
+model Quotation {
+  id                 String          @id
+  quoteNumber        String          @unique
+  date               String
+  validUntil         String
+  customerName       String
+  customerPhone      String?
+  customerEmail      String?
+  customerAddress    String?
+  subtotal           Float
+  taxRate            Float?
+  taxAmount          Float?
+  discount           Float?
+  totalAmount        Float
+  status             String          @default("Sent") // Draft | Sent | Accepted | Declined | Converted
+  notes              String?
+  terms              String?
+  preparedBy         String
+  convertedReceiptId String?
+  createdAt          DateTime        @default(now())
+  items              QuotationItem[]
+}
+
+model QuotationItem {
+  id              String    @id
+  quotationId     String
+  inventoryItemId String?
+  description     String
+  category        String
+  quantity        Int
+  unitPrice       Float
+  totalPrice      Float
+  unit            String?
+  notes           String?
+  quotation       Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+}
+
+model InventoryItem {
+  id                 String  @id
+  name               String
+  category           String
+  unit               String
+  currentStock       Float
+  minThreshold       Float
+  unitCost           Float
+  sellingPrice       Float
+  location           String?
+  sku                String  @unique
+  lastRestocked      String
+  depletionRatePerDay Float?
+}
+
+model StockMovement {
+  id              String   @id
+  inventoryItemId String
+  itemName        String
+  type            String
+  quantity        Float
+  date            String
+  notes           String?
+  performedBy     String
+  createdAt       DateTime @default(now())
+}
+
+model ServiceItem {
+  id              String  @id
+  code            String  @unique
+  name            String
+  category        String
+  unit            String
+  price           Float
+  active          Boolean @default(true)
+  inventoryItemId String?
+  notes           String?
+}
+
+model DailyExpense {
+  id            String   @id
+  date          String
+  category      String
+  description   String
+  amount        Float
+  paymentMethod String
+  recordedBy    String
+  tellerRole    String
+  receiptRef    String?
+  synced        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}

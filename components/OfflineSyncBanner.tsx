@@ -33,11 +33,11 @@ export const OfflineSyncBanner: React.FC<OfflineSyncBannerProps> = ({
         <span>
           {!isOnline ? (
             <>
-              <strong>Offline Mode Active:</strong> You can continue logging sales, printing receipts, and entering daily costs without internet. {pendingCount > 0 ? `${pendingCount} record(s) queued for sync.` : 'All saved locally.'}
+              <strong>Offline Mode Active:</strong> You can continue issuing sales receipts, creating quotations, and tracking inventory without an internet connection. {pendingCount > 0 ? `${pendingCount} record(s) queued for auto-sync.` : 'All changes saved locally.'}
             </>
           ) : (
             <>
-              <strong>Connection Restored:</strong> {pendingCount} queued offline transaction(s) ready to upload to cloud storage.
+              <strong>Connection Restored:</strong> {pendingCount} offline transaction(s) ready to sync with the SQLite Database.
             </>
           )}
         </span>
@@ -48,10 +48,10 @@ export const OfflineSyncBanner: React.FC<OfflineSyncBannerProps> = ({
           type="button"
           onClick={onSync}
           disabled={isSyncing}
-          className="flex items-center space-x-1.5 px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-xs transition"
+          className="flex items-center space-x-1.5 px-3 py-1 bg-[#0C2D64] hover:bg-[#081e44] text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-          <span>{isSyncing ? 'Uploading...' : `Upload ${pendingCount} Now`}</span>
+          <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isSyncing ? 'animate-spin' : ''}`} />
+          <span>{isSyncing ? 'Syncing with DB...' : `Sync ${pendingCount} to SQLite`}</span>
         </button>
       )}
     </div>

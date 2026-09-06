@@ -71,18 +71,27 @@ export interface SyncQueueItem {
 class StorageService {
   private isOnline: boolean = typeof navigator !== 'undefined' ? navigator.onLine : true;
   private listeners: Set<() => void> = new Set();
+  private lastSyncTime: string = 'Just now';
 
   constructor() {
     if (typeof window !== 'undefined') {
       window.addEventListener('online', () => {
         this.isOnline = true;
         this.processSyncQueue();
+        this.syncFromDatabase();
         this.notify();
       });
       window.addEventListener('offline', () => {
         this.isOnline = false;
         this.notify();
       });
+
+      // Initial sync on app boot if online
+      setTimeout(() => {
+        if (this.isOnline) {
+          this.syncFromDatabase().catch(console.warn);
+        }
+      }, 500);
     }
   }
 
@@ -99,6 +108,10 @@ class StorageService {
 
   public getOnlineStatus(): boolean {
     return this.isOnline;
+  }
+
+  public getLastSyncTime(): string {
+    return this.lastSyncTime;
   }
 
   // Company Info
@@ -126,15 +139,140 @@ class StorageService {
     this.notify();
   }
 
-  // Users & Auth
+  // Users & Auth (CRUD)
   public getUsers(): User[] {
     const data = localStorage.getItem(KEYS.USERS);
     if (!data) {
       localStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
-    localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
+      localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
       return INITIAL_USERS;
     }
     return JSON.parse(data);
+  }
+
+  public async createUser(userData: {
+    name: string;
+    role: 'admin' | 'teller';
+    pin: string;
+    email?: string;
+    avatar?: string;
+  }): Promise<User> {
+    const newUser: User = {
+      id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      name: userData.name.trim(),
+      role: userData.role,
+      pin: userData.pin.trim(),
+      avatar: userData.avatar || (userData.role === 'admin' ? '👑' : '🧑‍💼')
+    };
+
+    const users = this.getUsers();
+    users.push(newUser);
+    localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+    this.notify();
+
+    if (this.isOnline) {
+      try {
+        await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newUser)
+        });
+      } catch (err) {
+        console.warn('Offline: User saved locally and will sync later:', err);
+      }
+    }
+    return newUser;
+  }
+
+  public async updateUser(user: User): Promise<User> {
+    const users = this.getUsers();
+    const index = users.findIndex(u => u.id === user.id);
+    if (index >= 0) {
+      users[index] = { ...user };
+      localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+
+      const active = this.getActiveUser();
+      if (active.id === user.id) {
+        this.setActiveUser(user);
+      }
+      this.notify();
+    }
+
+    if (this.isOnline) {
+      try {
+        await fetch('/api/users', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(user)
+        });
+      } catch (err) {
+        console.warn('Offline: User update saved locally:', err);
+      }
+    }
+    return user;
+  }
+
+  public async deleteUser(id: string): Promise<boolean> {
+    const users = this.getUsers();
+    const target = users.find(u => u.id === id);
+    if (!target) return false;
+
+    if (target.role === 'admin') {
+      const admins = users.filter(u => u.role === 'admin');
+      if (admins.length <= 1) {
+        throw new Error('Action blocked: System must have at least one active Administrator.');
+      }
+    }
+
+    const updated = users.filter(u => u.id !== id);
+    localStorage.setItem(KEYS.USERS, JSON.stringify(updated));
+
+    const active = this.getActiveUser();
+    if (active.id === id && updated.length > 0) {
+      this.setActiveUser(updated[0]);
+    }
+    this.notify();
+
+    if (this.isOnline) {
+      try {
+        await fetch(`/api/users?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE'
+        });
+      } catch (err) {
+        console.warn('Offline: User deletion queued locally:', err);
+      }
+    }
+    return true;
+  }
+
+  public async authenticateUser(userId: string, enteredPin: string): Promise<User | null> {
+    const users = this.getUsers();
+    const localUser = users.find(u => u.id === userId);
+
+    // Online verification if possible
+    if (this.isOnline) {
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, pin: enteredPin })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.user) {
+            return data.user;
+          }
+        }
+      } catch (e) {
+        console.warn('Falling back to local PIN authentication (offline)', e);
+      }
+    }
+
+    // Offline / Local verification fallback
+    if (localUser && localUser.pin === enteredPin.trim()) {
+      return localUser;
+    }
+    return null;
   }
 
   public getActiveUser(): User {
@@ -531,27 +669,113 @@ class StorageService {
 
     const queue = this.getSyncQueue();
     const pending = queue.filter(q => q.status === 'pending' || q.status === 'failed');
-    if (pending.length === 0) return { success: true, count: 0 };
 
-    // Simulate fast reliable cloud upload
-    await new Promise(r => setTimeout(r, 600));
+    try {
+      const response = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          queue: pending,
+          fullSyncData: {
+            quotations: this.getQuotations(),
+            inventory: this.getInventory()
+          }
+        })
+      });
 
-    const updatedQueue = queue.map(q => ({
-      ...q,
-      status: 'synced' as const
-    }));
+      if (response.ok) {
+        localStorage.setItem(KEYS.SYNC_QUEUE, JSON.stringify([]));
+        const sales = this.getSales().map(s => ({ ...s, synced: true }));
+        const expenses = this.getExpenses().map(e => ({ ...e, synced: true }));
+        localStorage.setItem(KEYS.SALES, JSON.stringify(sales));
+        localStorage.setItem(KEYS.EXPENSES, JSON.stringify(expenses));
+        this.lastSyncTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        this.notify();
+        return { success: true, count: pending.length };
+      }
+    } catch (err) {
+      console.warn('Network sync failed, keeping items in offline queue:', err);
+    }
 
-    // Clean up synced items older than a day, keep recent
-    localStorage.setItem(KEYS.SYNC_QUEUE, JSON.stringify(updatedQueue.filter(q => q.status !== 'synced')));
+    return { success: false, count: 0 };
+  }
 
-    // Mark sales & expenses as synced
-    const sales = this.getSales().map(s => ({ ...s, synced: true }));
-    const expenses = this.getExpenses().map(e => ({ ...e, synced: true }));
-    localStorage.setItem(KEYS.SALES, JSON.stringify(sales));
-    localStorage.setItem(KEYS.EXPENSES, JSON.stringify(expenses));
+  public async syncFromDatabase(): Promise<boolean> {
+    if (!this.isOnline) return false;
 
-    this.notify();
-    return { success: true, count: pending.length };
+    try {
+      const response = await fetch('/api/sync');
+      if (!response.ok) return false;
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        const { users, company, sales, quotations, inventory, services, expenses } = result.data;
+
+        if (users && users.length > 0) {
+          localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+        }
+        if (company) {
+          localStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(company));
+        }
+
+        // Merge remote sales into local if missing
+        if (sales && sales.length > 0) {
+          const localSales = this.getSales();
+          const localMap = new Map(localSales.map(s => [s.id, s]));
+          for (const s of sales) {
+            if (!localMap.has(s.id)) {
+              localSales.push({
+                ...s,
+                synced: true
+              });
+            }
+          }
+          localStorage.setItem(KEYS.SALES, JSON.stringify(localSales));
+        }
+
+        // Merge remote quotations into local if missing
+        if (quotations && quotations.length > 0) {
+          const localQuotes = this.getQuotations();
+          const localQuoteMap = new Map(localQuotes.map(q => [q.id, q]));
+          for (const q of quotations) {
+            if (!localQuoteMap.has(q.id)) {
+              localQuotes.push(q);
+            } else {
+              // update status if converted or changed remotely
+              const curr = localQuoteMap.get(q.id)!;
+              if (curr.status !== q.status) {
+                curr.status = q.status;
+                curr.convertedReceiptId = q.convertedReceiptId;
+              }
+            }
+          }
+          localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(localQuotes));
+        }
+
+        this.lastSyncTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        this.notify();
+        return true;
+      }
+    } catch (err) {
+      console.warn('Failed to pull sync from SQLite database:', err);
+    }
+
+    return false;
+  }
+
+  public async triggerManualSync(): Promise<{ success: boolean; message: string }> {
+    if (!this.isOnline) {
+      return { success: false, message: 'Device is offline. Changes are saved locally and will auto-sync when online.' };
+    }
+
+    const pushRes = await this.processSyncQueue();
+    const pullRes = await this.syncFromDatabase();
+
+    if (pushRes.success || pullRes) {
+      return { success: true, message: `Sync complete with SQLite database. ${pushRes.count} pending items pushed.` };
+    }
+
+    return { success: false, message: 'Could not complete sync with SQLite server.' };
   }
 
   // Financial Summaries Calculation
