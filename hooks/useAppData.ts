@@ -13,6 +13,7 @@ import {
   StockMovement,
   ServiceItem,
   Quotation,
+  MarketingCampaign
 } from '@/types';
 
 export function useAppData() {
@@ -27,6 +28,7 @@ export function useAppData() {
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
 
   const [previewReceipt, setPreviewReceipt] =
     useState<SaleReceipt | null>(null);
@@ -48,6 +50,7 @@ export function useAppData() {
       setStockMovements(storage.getStockMovements());
       setServices(storage.getServices());
       setQuotations(storage.getQuotations());
+      setCampaigns(storage.getMarketingCampaigns());
     };
 
     load();
@@ -72,6 +75,7 @@ export function useAppData() {
     stockMovements,
     services,
     quotations,
+    campaigns,
 
     previewReceipt,
     setPreviewReceipt,

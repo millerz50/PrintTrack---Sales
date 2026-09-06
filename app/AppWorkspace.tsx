@@ -22,6 +22,9 @@ import { ServiceManager } from '@/components/ServiceManager';
 import { InventoryManager } from '@/components/InventoryManager';
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard';
 import { ChatHub } from '@/components/ChatHub';
+import { MarketingCampaigns } from '@/components/marketing/MarketingCampaigns';
+import { ClientLeadsCRM } from '@/components/marketing/ClientLeadsCRM';
+import { AiMarketingHub } from '@/components/marketing/AiMarketingHub';
 
 export interface AppWorkspaceProps {
   activeTab: AppTab;
@@ -145,6 +148,31 @@ export function AppWorkspace({
           activeUser={activeUser}
           company={company}
           selectedDate={selectedDate}
+        />
+      )}
+
+      {activeTab === 'campaigns' && (
+        <MarketingCampaigns
+          company={company}
+          activeUser={activeUser}
+          onStartQuotationWithPromo={() => onNavigateToTab('quotations')}
+          onNavigateToTab={onNavigateToTab}
+        />
+      )}
+
+      {activeTab === 'clients' && (
+        <ClientLeadsCRM
+          company={company}
+          activeUser={activeUser}
+          onSelectClientForQuote={() => onNavigateToTab('quotations')}
+          onNavigateToTab={onNavigateToTab}
+        />
+      )}
+
+      {activeTab === 'ai_marketing' && (
+        <AiMarketingHub
+          company={company}
+          activeUser={activeUser}
         />
       )}
     </>

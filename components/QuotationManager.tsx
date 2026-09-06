@@ -446,7 +446,14 @@ export function QuotationManager({
                 {filteredQuotations.map(quote => (
                   <tr key={quote.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="py-3.5 px-4 font-mono font-bold text-[#0C2D64]">
-                      {quote.quoteNumber}
+                      <div className="flex items-center gap-1.5">
+                        <span>{quote.quoteNumber}</span>
+                        {quote.source === 'web' && (
+                          <span className="px-1.5 py-0.2 text-[9px] uppercase font-sans font-bold bg-teal-50 text-teal-700 border border-teal-200 rounded">
+                            🌐 Web Request
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="py-3.5 px-4">
@@ -455,6 +462,11 @@ export function QuotationManager({
                         {quote.customerPhone && <span>{quote.customerPhone}</span>}
                         {quote.customerEmail && <span>• {quote.customerEmail}</span>}
                       </div>
+                      {quote.clientNotes && (
+                        <div className="text-[10px] text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 mt-1 max-w-xs">
+                          {quote.clientNotes}
+                        </div>
+                      )}
                     </td>
 
                     <td className="py-3.5 px-4 text-slate-600 hidden md:table-cell max-w-xs truncate">

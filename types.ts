@@ -91,6 +91,8 @@ export interface QuotationItem {
   notes?: string;
 }
 
+export type PortalMode = 'public_website' | 'staff_pos';
+
 export interface Quotation {
   id: string;
   quoteNumber: string; // e.g. "QT-2026-001"
@@ -108,10 +110,12 @@ export interface Quotation {
   totalAmount: number;
   status: QuotationStatus;
   notes?: string;
+  clientNotes?: string;
   terms?: string;
   preparedBy: string;
   createdAt: string;
   convertedReceiptId?: string;
+  source?: 'web' | 'pos';
 }
 
 export type ExpenseCategory =
@@ -163,6 +167,47 @@ export interface DailyFinancialSummary {
   digitalSales: number;
   cashExpenses: number;
   closingCashInDrawer: number;
+}
+
+export type AppMode = 'pos' | 'marketing';
+
+export type CampaignAudience =
+  | 'Schools & Academies'
+  | 'Corporate & SMEs'
+  | 'Churches & Events'
+  | 'Walk-in & Retail'
+  | 'Environmental & Consultancy';
+
+export interface MarketingCampaign {
+  id: string;
+  title: string;
+  subtitle: string;
+  category: PrintingCategory | 'All Services';
+  discountPercentage: number;
+  startDate: string;
+  endDate: string;
+  targetAudience: CampaignAudience;
+  promoCode?: string;
+  description: string;
+  whatsappPitch: string;
+  flyerHeadline: string;
+  active: boolean;
+  featuredServices?: string[];
+  reachCount?: number;
+}
+
+export interface ClientLead {
+  id: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  companyOrOrg?: string;
+  leadType: 'School' | 'Corporate' | 'Church' | 'Individual' | 'Consultancy';
+  totalQuotes: number;
+  totalWonAmount: number;
+  lastInteractionDate: string;
+  latestStatus: QuotationStatus | 'Customer';
+  notes?: string;
 }
 
 export type ChatChannel = 'ai_advisor' | 'team_workshop' | 'order_alerts';

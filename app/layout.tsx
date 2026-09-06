@@ -5,7 +5,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'PrintTrack - Sales & Inventory Tracker',
   description:
-    'Real-time sales, receipt POS, quotation & cotation generator with Magen Integrated Solutions logo branding, offline sync, inventory depletion analytics, and exportable PDF summaries.',
+    'Commercial print & media services showcase, client cotation request builder, and teller POS terminal with Magen Integrated Solutions branding, offline sync, and real-time inventory management.',
 };
 
 export default function RootLayout({

@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { OfflineSyncBanner } from '@/components/OfflineSyncBanner';
-import { User, InventoryItem } from '@/types';
+import { User, InventoryItem, AppMode } from '@/types';
 import { CompanyInfo, storage } from '@/services/storage';
 import { AppTab } from '@/hooks/useAppNavigation';
 
@@ -12,6 +12,8 @@ export interface AppNavigationProps {
   company: CompanyInfo;
   selectedDate: string;
   onDateChange: (date: string) => void;
+  appMode: AppMode;
+  setAppMode: (mode: AppMode) => void;
   activeTab: AppTab;
   setActiveTab: (tab: AppTab) => void;
   isOnline: boolean;
@@ -21,6 +23,8 @@ export interface AppNavigationProps {
   onOpenAuth?: () => void;
   onOpenSettings?: () => void;
   inventory?: InventoryItem[];
+  onViewWebsite?: () => void;
+  onLockPos?: () => void;
 }
 
 export function AppNavigation({
@@ -28,6 +32,8 @@ export function AppNavigation({
   company,
   selectedDate,
   onDateChange,
+  appMode,
+  setAppMode,
   activeTab,
   setActiveTab,
   isOnline,
@@ -36,7 +42,9 @@ export function AppNavigation({
   isSyncing,
   onOpenAuth = () => {},
   onOpenSettings = () => {},
-  inventory
+  inventory,
+  onViewWebsite,
+  onLockPos
 }: AppNavigationProps) {
   const summary = useMemo(() => {
     return storage.getDailySummary(selectedDate);
@@ -59,9 +67,13 @@ export function AppNavigation({
         onDateChange={onDateChange}
         summary={summary}
         lowStockCount={lowStockCount}
+        appMode={appMode}
+        setAppMode={setAppMode}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         company={company}
+        onViewWebsite={onViewWebsite}
+        onLockPos={onLockPos}
       />
       <OfflineSyncBanner
         isOnline={isOnline}

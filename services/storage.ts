@@ -10,7 +10,9 @@ import {
   ChatChannel,
   Quotation,
   QuotationStatus,
-  PaymentMethod
+  PaymentMethod,
+  MarketingCampaign,
+  ClientLead
 } from '../types';
 import {
   INITIAL_INVENTORY,
@@ -34,8 +36,80 @@ const KEYS = {
   COMPANY_INFO: 'print_track_company_info_v1',
   CHATS: 'print_track_chats_v1',
   SERVICES: 'print_track_services_v1',
-  QUOTATIONS: 'print_track_quotations_v1'
+  QUOTATIONS: 'print_track_quotations_v1',
+  CAMPAIGNS: 'print_track_campaigns_v1'
 };
+
+export const INITIAL_CAMPAIGNS: MarketingCampaign[] = [
+  {
+    id: 'camp_01',
+    title: 'Back-to-School Modules & Exam Papers',
+    subtitle: '15% Discount on Bulk Academic Booklets & School Reports',
+    category: 'Book Printing',
+    discountPercentage: 15,
+    startDate: '2026-09-01',
+    endDate: '2026-10-15',
+    targetAudience: 'Schools & Academies',
+    promoCode: 'SCHOOL2026',
+    description: 'Special bulk printing and spiral/hardcover binding rates for primary & secondary schools, including Shona Novels, Science/History modules, and terminal report booklets.',
+    flyerHeadline: 'High-Quality Educational Printing at Subsidized Bulk Rates!',
+    whatsappPitch: 'Greetings from Magen Media & Print Solutions! 📚 We are currently offering schools a special 15% discount on all Curriculum Modules, Schemes of Work, and Student Report Books with free delivery for orders over 50 copies. Reply with your quantities for a formal quotation today!',
+    active: true,
+    featuredServices: ['Modules - BET / Commerce', 'Modules - History / FRS / Science', 'Academic Reports - Secondary'],
+    reachCount: 42
+  },
+  {
+    id: 'camp_02',
+    title: 'Corporate Executive Branding & T-Shirt Package',
+    subtitle: '50 DTF Branded Shirts + 100 Business Cards + 2 Roll-up Banners',
+    category: 'T-Shirt Printing',
+    discountPercentage: 10,
+    startDate: '2026-09-01',
+    endDate: '2026-11-30',
+    targetAudience: 'Corporate & SMEs',
+    promoCode: 'CORPBRAND10',
+    description: 'Complete corporate identity and expo promotion bundle for companies, exhibitions, and product launches.',
+    flyerHeadline: 'Elevate Your Corporate Identity with Premium Media & Apparel Branding',
+    whatsappPitch: 'Elevate your brand presence with Magen Integrated Solutions! 💼 Upgrade your team uniform with premium DTF printed t-shirts and executive roll-up banners. Special bundle discounts available this month. Contact us for a customized corporate proposal.',
+    active: true,
+    featuredServices: ['T-Shirt Printing (General)', 'Business Cards'],
+    reachCount: 28
+  },
+  {
+    id: 'camp_03',
+    title: 'Environmental EIA & Technical Report Binding Special',
+    subtitle: 'Hardcover Gold-Foil Casings & Expedited Environmental Consultancy Dossiers',
+    category: 'Book Printing',
+    discountPercentage: 12,
+    startDate: '2026-08-15',
+    endDate: '2026-12-31',
+    targetAudience: 'Environmental & Consultancy',
+    promoCode: 'ENVCONSULT',
+    description: 'Fast-turnaround executive hardcover binding with gold-foil lettering, color maps, and compliance documentation for environmental impact assessments and corporate prospectuses.',
+    flyerHeadline: 'Professional Technical Documentation & Environmental Consultancy Reports',
+    whatsappPitch: 'Need urgent professional binding for your Environmental Impact Assessment (EIA) or prospectus reports? 🌍 Magen Integrated Solutions provides executive hardcover binding with crisp color cartography printing. Call us today for expedited turnaround!',
+    active: true,
+    featuredServices: ['Prospectus Report - Documentation (4 copies) Including Printing', 'Spiral Binding'],
+    reachCount: 19
+  },
+  {
+    id: 'camp_04',
+    title: 'Church Conferences & Community Events Pack',
+    subtitle: 'Full-Color Flyers, Stage Banners & Commemorative Sublimation Mugs',
+    category: 'Banners & Signage',
+    discountPercentage: 20,
+    startDate: '2026-09-05',
+    endDate: '2026-10-31',
+    targetAudience: 'Churches & Events',
+    promoCode: 'FAITH20',
+    description: 'Discounted promotional package for church conferences, crusades, weddings, and community rallies.',
+    flyerHeadline: 'Inspire Your Audience with Vibrant Event Graphics & Banners',
+    whatsappPitch: 'Planning an upcoming conference, wedding, or church convention? 🌟 Magen Print Solutions offers vibrant large-format PVC banners, flyers, and customized gift mugs at 20% off. Request a quote or visit our workshop today!',
+    active: false,
+    featuredServices: ['A4 Photo Printing - Without Frame', 'Business Cards'],
+    reachCount: 35
+  }
+];
 
 export interface CompanyInfo {
   name: string;
@@ -547,6 +621,55 @@ class StorageService {
     return newQuote;
   }
 
+  public submitWebClientQuotation(data: {
+    customerName: string;
+    customerPhone: string;
+    customerEmail?: string;
+    customerAddress?: string;
+    items: import('../types').QuotationItem[];
+    clientNotes?: string;
+    promoCode?: string;
+    discount?: number;
+  }): Quotation {
+    const today = new Date().toISOString().split('T')[0];
+    const validUntil = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+    const subtotal = data.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+    const discount = data.discount || 0;
+    const totalAmount = Math.max(0, subtotal - discount);
+
+    const quoteNumber = `COT-${today.replace(/-/g, '').slice(2)}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const newQuote: Quotation = {
+      id: `quote_web_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      quoteNumber,
+      date: today,
+      validUntil,
+      customerName: data.customerName.trim(),
+      customerPhone: data.customerPhone.trim(),
+      customerEmail: data.customerEmail?.trim(),
+      customerAddress: data.customerAddress?.trim(),
+      items: data.items,
+      subtotal,
+      discount,
+      taxRate: 0,
+      taxAmount: 0,
+      totalAmount,
+      status: 'Sent',
+      notes: data.promoCode ? `Promo: ${data.promoCode}. ${data.clientNotes || ''}` : data.clientNotes,
+      clientNotes: data.clientNotes,
+      terms: 'Quotation valid for 14 days. 50% deposit required on job confirmation; balance on collection/delivery.',
+      preparedBy: 'Online Web Request',
+      createdAt: new Date().toISOString(),
+      source: 'web'
+    };
+
+    const quotes = this.getQuotations();
+    quotes.unshift(newQuote);
+    localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+    this.notify();
+    return newQuote;
+  }
+
   public updateQuotationStatus(id: string, status: QuotationStatus): void {
     const quotes = this.getQuotations();
     const quote = quotes.find(q => q.id === id);
@@ -602,6 +725,191 @@ class StorageService {
     this.notify();
 
     return receipt;
+  }
+
+  // Marketing Campaigns & Specials
+  public getMarketingCampaigns(): MarketingCampaign[] {
+    const data = localStorage.getItem(KEYS.CAMPAIGNS);
+    if (!data) {
+      localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(INITIAL_CAMPAIGNS));
+      return INITIAL_CAMPAIGNS;
+    }
+    return JSON.parse(data);
+  }
+
+  public saveMarketingCampaign(campaign: Partial<MarketingCampaign> & { title: string }): MarketingCampaign {
+    const campaigns = this.getMarketingCampaigns();
+    if (campaign.id) {
+      const idx = campaigns.findIndex(c => c.id === campaign.id);
+      if (idx >= 0) {
+        const updated: MarketingCampaign = {
+          ...campaigns[idx],
+          ...campaign,
+          id: campaign.id
+        };
+        campaigns[idx] = updated;
+        localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
+        this.notify();
+        return updated;
+      }
+    }
+
+    const newCampaign: MarketingCampaign = {
+      id: `camp_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      title: campaign.title,
+      subtitle: campaign.subtitle || 'Special Promotional Offer',
+      category: campaign.category || 'All Services',
+      discountPercentage: campaign.discountPercentage ?? 10,
+      startDate: campaign.startDate || new Date().toISOString().split('T')[0],
+      endDate: campaign.endDate || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+      targetAudience: campaign.targetAudience || 'Schools & Academies',
+      promoCode: campaign.promoCode || `PROMO${Math.floor(1000 + Math.random() * 9000)}`,
+      description: campaign.description || '',
+      whatsappPitch: campaign.whatsappPitch || '',
+      flyerHeadline: campaign.flyerHeadline || campaign.title,
+      active: campaign.active ?? true,
+      featuredServices: campaign.featuredServices || [],
+      reachCount: campaign.reachCount || 0
+    };
+
+    campaigns.unshift(newCampaign);
+    localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
+    this.notify();
+    return newCampaign;
+  }
+
+  public toggleCampaignStatus(id: string): void {
+    const campaigns = this.getMarketingCampaigns();
+    const item = campaigns.find(c => c.id === id);
+    if (item) {
+      item.active = !item.active;
+      localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
+      this.notify();
+    }
+  }
+
+  public deleteMarketingCampaign(id: string): void {
+    const campaigns = this.getMarketingCampaigns().filter(c => c.id !== id);
+    localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
+    this.notify();
+  }
+
+  // Client Leads Pipeline (Aggregated from Quotations and Past Orders)
+  public getClientLeads(): ClientLead[] {
+    const quotes = this.getQuotations();
+    const sales = this.getSales();
+    const clientMap = new Map<string, ClientLead>();
+
+    // Process quotations
+    quotes.forEach(q => {
+      const key = (q.customerName || 'Walk-in Client').trim().toLowerCase();
+      const existing = clientMap.get(key);
+
+      const nameLower = q.customerName.toLowerCase();
+      let detectedType: ClientLead['leadType'] = 'Individual';
+      if (nameLower.includes('school') || nameLower.includes('academy') || nameLower.includes('college') || nameLower.includes('primary') || nameLower.includes('high')) {
+        detectedType = 'School';
+      } else if (nameLower.includes('church') || nameLower.includes('ministr') || nameLower.includes('assembly')) {
+        detectedType = 'Church';
+      } else if (nameLower.includes('consult') || nameLower.includes('env') || nameLower.includes('green') || nameLower.includes('eco')) {
+        detectedType = 'Consultancy';
+      } else if (nameLower.includes('agency') || nameLower.includes('ltd') || nameLower.includes('inc') || nameLower.includes('holdings') || nameLower.includes('solutions') || nameLower.includes('media')) {
+        detectedType = 'Corporate';
+      }
+
+      const isWon = q.status === 'Accepted' || q.status === 'Converted';
+
+      if (!existing) {
+        clientMap.set(key, {
+          id: `lead_${key.replace(/[^a-z0-9]/g, '_')}`,
+          name: q.customerName,
+          phone: q.customerPhone,
+          email: q.customerEmail,
+          companyOrOrg: q.customerAddress,
+          leadType: detectedType,
+          totalQuotes: 1,
+          totalWonAmount: isWon ? q.totalAmount : 0,
+          lastInteractionDate: q.date,
+          latestStatus: q.status,
+          notes: q.notes
+        });
+      } else {
+        existing.totalQuotes += 1;
+        if (isWon) {
+          existing.totalWonAmount += q.totalAmount;
+        }
+        if (q.customerPhone && !existing.phone) existing.phone = q.customerPhone;
+        if (q.customerEmail && !existing.email) existing.email = q.customerEmail;
+        if (q.date > existing.lastInteractionDate) {
+          existing.lastInteractionDate = q.date;
+          existing.latestStatus = q.status;
+        }
+      }
+    });
+
+    // Process receipts to catch direct walk-in customers who might be marketing targets
+    sales.forEach(s => {
+      if (!s.customerName || s.customerName.toLowerCase().includes('walk-in')) return;
+      const key = s.customerName.trim().toLowerCase();
+      const existing = clientMap.get(key);
+
+      if (!existing) {
+        clientMap.set(key, {
+          id: `lead_${key.replace(/[^a-z0-9]/g, '_')}`,
+          name: s.customerName,
+          phone: s.customerPhone,
+          leadType: 'Corporate',
+          totalQuotes: 0,
+          totalWonAmount: s.totalAmount,
+          lastInteractionDate: s.date.slice(0, 10),
+          latestStatus: 'Customer'
+        });
+      } else {
+        existing.totalWonAmount += s.totalAmount;
+        if (s.customerPhone && !existing.phone) existing.phone = s.customerPhone;
+      }
+    });
+
+    return Array.from(clientMap.values()).sort((a, b) => b.totalWonAmount - a.totalWonAmount);
+  }
+
+  public getMarketingSummary(): {
+    totalQuotes: number;
+    totalQuoteValue: number;
+    pendingQuotesCount: number;
+    pendingQuotesValue: number;
+    convertedQuotesCount: number;
+    conversionRate: number;
+    activeCampaignsCount: number;
+    totalLeadsCount: number;
+  } {
+    const quotes = this.getQuotations();
+    const campaigns = this.getMarketingCampaigns();
+    const leads = this.getClientLeads();
+
+    const totalQuotes = quotes.length;
+    const totalQuoteValue = quotes.reduce((sum, q) => sum + q.totalAmount, 0);
+
+    const pending = quotes.filter(q => q.status === 'Sent' || q.status === 'Draft');
+    const pendingQuotesCount = pending.length;
+    const pendingQuotesValue = pending.reduce((sum, q) => sum + q.totalAmount, 0);
+
+    const converted = quotes.filter(q => q.status === 'Converted' || q.status === 'Accepted');
+    const convertedQuotesCount = converted.length;
+
+    const conversionRate = totalQuotes > 0 ? Math.round((convertedQuotesCount / totalQuotes) * 100) : 0;
+    const activeCampaignsCount = campaigns.filter(c => c.active).length;
+
+    return {
+      totalQuotes,
+      totalQuoteValue,
+      pendingQuotesCount,
+      pendingQuotesValue,
+      convertedQuotesCount,
+      conversionRate,
+      activeCampaignsCount,
+      totalLeadsCount: leads.length
+    };
   }
 
   // Daily Expenses

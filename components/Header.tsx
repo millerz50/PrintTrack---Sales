@@ -16,9 +16,14 @@ import {
   Bot,
   Wrench,
   FileText,
-  Database
+  Database,
+  Megaphone,
+  Users,
+  Sparkles,
+  Globe,
+  Lock
 } from 'lucide-react';
-import { User, DailyFinancialSummary } from '../types';
+import { User, DailyFinancialSummary, AppMode } from '../types';
 import { CompanyInfo } from '../services/storage';
 import { MagenLogo } from './MagenLogo';
 import { AppTab } from '../hooks/useAppNavigation';
@@ -35,10 +40,14 @@ interface HeaderProps {
   onDateChange: (date: string) => void;
   summary: DailyFinancialSummary;
   lowStockCount: number;
+  appMode: AppMode;
+  setAppMode: (mode: AppMode) => void;
   activeTab: AppTab;
   setActiveTab: (tab: AppTab) => void;
   company: CompanyInfo;
   unreadChatsCount?: number;
+  onViewWebsite?: () => void;
+  onLockPos?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -53,9 +62,13 @@ export const Header: React.FC<HeaderProps> = ({
   onDateChange,
   summary,
   lowStockCount,
+  appMode,
+  setAppMode,
   activeTab,
   setActiveTab,
-  company
+  company,
+  onViewWebsite,
+  onLockPos
 }) => {
   const currency = company.currency || '$';
 
@@ -168,6 +181,32 @@ export const Header: React.FC<HeaderProps> = ({
                 <Sliders className="w-4 h-4" />
               </button>
             )}
+
+            {/* View Public Customer Showcase */}
+            {onViewWebsite && (
+              <button
+                id="header-view-website-btn"
+                onClick={onViewWebsite}
+                className="flex items-center space-x-1.5 px-2.5 py-1 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/80 text-emerald-300 text-xs font-semibold rounded-lg transition"
+                title="Switch to Public Customer Showcase Website"
+              >
+                <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden sm:inline">Public Website</span>
+              </button>
+            )}
+
+            {/* Lock POS / Return to Public Portal */}
+            {onLockPos && (
+              <button
+                id="header-lock-pos-btn"
+                onClick={onLockPos}
+                className="flex items-center space-x-1 px-2 py-1 bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-800 text-slate-300 hover:text-rose-300 text-xs font-medium rounded-lg transition"
+                title="Lock POS Terminal & Sign Out"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Lock POS</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -231,120 +270,217 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <nav className="flex space-x-1 sm:space-x-2 mt-3 overflow-x-auto pb-1 text-xs sm:text-sm font-medium scrollbar-none">
-          <button
-            id="tab-pos"
-            onClick={() => setActiveTab('pos')}
-            className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === 'pos'
-                ? 'bg-emerald-600 text-white shadow-sm font-semibold'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <Printer className="w-4 h-4" />
-            <span>New Sale / Receipt POS</span>
-          </button>
-
-          <button
-            id="tab-quotations"
-            onClick={() => setActiveTab('quotations')}
-            className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === 'quotations'
-                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400 font-semibold'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <FileText className="w-4 h-4 text-emerald-400" />
-            <span>Quotations &amp; Cotation</span>
-          </button>
-
-          <button
-            id="tab-reports"
-            onClick={() => setActiveTab('reports')}
-            className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === 'reports'
-                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Daily Summarized Reports</span>
-          </button>
-
-          <button
-            id="tab-costs"
-            onClick={() => setActiveTab('costs')}
-            className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === 'costs'
-                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            <span>Daily Costs &amp; Expenses</span>
-          </button>
-
-          {activeUser.role === 'admin' && (
+        {/* Operating Mode Switcher: Local POS vs Marketing */}
+        <div className="mt-3.5 pt-3 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center space-x-1.5 bg-slate-950/90 p-1 rounded-xl border border-slate-800 shadow-inner self-start">
             <button
-              id="tab-services"
-              onClick={() => setActiveTab('services')}
+              id="mode-pos-button"
+              onClick={() => setAppMode('pos')}
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                appMode === 'pos'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+              }`}
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Local POS Terminal</span>
+              <span className={`text-[10px] uppercase font-mono px-1.5 py-0.5 rounded ${
+                appMode === 'pos' ? 'bg-emerald-900/90 text-emerald-200 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'
+              }`}>
+                Counter &amp; Till
+              </span>
+            </button>
+
+            <button
+              id="mode-marketing-button"
+              onClick={() => setAppMode('marketing')}
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                appMode === 'marketing'
+                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-blue-400'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+              }`}
+            >
+              <Megaphone className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Marketing &amp; Commercial</span>
+              <span className={`text-[10px] uppercase font-mono px-1.5 py-0.5 rounded ${
+                appMode === 'marketing' ? 'bg-blue-900/90 text-blue-200 border border-blue-400/40' : 'bg-slate-800 text-slate-400'
+              }`}>
+                B2B &amp; Quotes
+              </span>
+            </button>
+          </div>
+
+          <div className="text-[11px] text-slate-400 hidden sm:flex items-center space-x-2">
+            <span>Current Workspace:</span>
+            <span className={`font-semibold px-2 py-0.5 rounded-md ${
+              appMode === 'pos'
+                ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                : 'bg-blue-950 text-blue-300 border border-blue-800'
+            }`}>
+              {appMode === 'pos' ? '🛒 Front Counter / POS Operations' : '📢 Outbound Marketing & Client Proposals'}
+            </span>
+          </div>
+        </div>
+
+        {/* Separated Navigation Tabs */}
+        {appMode === 'pos' ? (
+          /* LOCAL POS TABS */
+          <nav className="flex space-x-1 sm:space-x-2 mt-2.5 overflow-x-auto pb-1 text-xs sm:text-sm font-medium scrollbar-none">
+            <button
+              id="tab-pos"
+              onClick={() => setActiveTab('pos')}
               className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'services'
+                activeTab === 'pos'
+                  ? 'bg-emerald-600 text-white shadow-sm font-semibold'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Printer className="w-4 h-4" />
+              <span>New Sale / Receipt POS</span>
+            </button>
+
+            <button
+              id="tab-reports"
+              onClick={() => setActiveTab('reports')}
+              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'reports'
                   ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800'
               }`}
             >
-              <Wrench className="w-4 h-4" />
-              <span>Services &amp; Pricing</span>
+              <Calendar className="w-4 h-4" />
+              <span>Daily Reports &amp; Cash-up</span>
             </button>
-          )}
 
-          <button
-            id="tab-inventory"
-            onClick={() => setActiveTab('inventory')}
-            className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === 'inventory'
-                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <AlertTriangle className="w-4 h-4" />
-            <span>Inventory &amp; Stock Depletion</span>
-            {lowStockCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 font-bold text-[10px] flex items-center justify-center ml-1">
-                {lowStockCount}
-              </span>
+            <button
+              id="tab-costs"
+              onClick={() => setActiveTab('costs')}
+              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'costs'
+                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4" />
+              <span>Daily Costs &amp; Expenses</span>
+            </button>
+
+            <button
+              id="tab-inventory"
+              onClick={() => setActiveTab('inventory')}
+              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'inventory'
+                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <AlertTriangle className="w-4 h-4" />
+              <span>Inventory &amp; Stock Depletion</span>
+              {lowStockCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 font-bold text-[10px] flex items-center justify-center ml-1">
+                  {lowStockCount}
+                </span>
+              )}
+            </button>
+
+            {activeUser.role === 'admin' && (
+              <button
+                id="tab-services"
+                onClick={() => setActiveTab('services')}
+                className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+                  activeTab === 'services'
+                    ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <Wrench className="w-4 h-4" />
+                <span>Services &amp; Pricing</span>
+              </button>
             )}
-          </button>
 
-          <button
-            id="tab-analytics"
-            onClick={() => setActiveTab('analytics')}
-            className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === 'analytics'
-                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4" />
-            <span>Graphs &amp; Financials</span>
-          </button>
+            <button
+              id="tab-chats"
+              onClick={() => setActiveTab('chats')}
+              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'chats'
+                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>Workshop &amp; AI Chat</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            </button>
+          </nav>
+        ) : (
+          /* MARKETING & COMMERCIAL TABS */
+          <nav className="flex space-x-1 sm:space-x-2 mt-2.5 overflow-x-auto pb-1 text-xs sm:text-sm font-medium scrollbar-none">
+            <button
+              id="tab-quotations"
+              onClick={() => setActiveTab('quotations')}
+              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'quotations'
+                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400 font-semibold'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <FileText className="w-4 h-4 text-emerald-400" />
+              <span>Quotations &amp; Cotation</span>
+            </button>
 
-          <button
-            id="tab-chats"
-            onClick={() => setActiveTab('chats')}
-            className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === 'chats'
-                ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Workshop &amp; AI Chat</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          </button>
-        </nav>
+            <button
+              id="tab-campaigns"
+              onClick={() => setActiveTab('campaigns')}
+              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'campaigns'
+                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400 font-semibold'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Megaphone className="w-4 h-4 text-emerald-400" />
+              <span>Campaigns &amp; Specials</span>
+            </button>
+
+            <button
+              id="tab-clients"
+              onClick={() => setActiveTab('clients')}
+              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'clients'
+                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400 font-semibold'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Users className="w-4 h-4 text-cyan-400" />
+              <span>Client Leads &amp; CRM</span>
+            </button>
+
+            <button
+              id="tab-ai-marketing"
+              onClick={() => setActiveTab('ai_marketing')}
+              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'ai_marketing'
+                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400 font-semibold'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-purple-400" />
+              <span>AI Marketing Copilot</span>
+            </button>
+
+            <button
+              id="tab-analytics"
+              onClick={() => setActiveTab('analytics')}
+              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'analytics'
+                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>Performance &amp; Graphs</span>
+            </button>
+          </nav>
+        )}
       </div>
     </header>
   );
