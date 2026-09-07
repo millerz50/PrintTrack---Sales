@@ -1,7 +1,8 @@
+'use client';
+
 import React from 'react';
 import {
   Printer,
-  Wifi,
   WifiOff,
   RefreshCw,
   UserCheck,
@@ -13,7 +14,6 @@ import {
   Sliders,
   MessageSquare,
   BarChart3,
-  Bot,
   Wrench,
   FileText,
   Database,
@@ -21,8 +21,9 @@ import {
   Users,
   Sparkles,
   Globe,
-  Lock
+  Lock,
 } from 'lucide-react';
+
 import { User, DailyFinancialSummary, AppMode } from '../types';
 import { CompanyInfo } from '../services/storage';
 import { MagenLogo } from './MagenLogo';
@@ -32,20 +33,28 @@ interface HeaderProps {
   activeUser: User;
   onOpenAuth: () => void;
   onOpenSettings: () => void;
+
   isOnline: boolean;
   pendingSyncCount: number;
   onSyncNow: () => void;
   isSyncing: boolean;
+
   selectedDate: string;
   onDateChange: (date: string) => void;
+
   summary: DailyFinancialSummary;
   lowStockCount: number;
+
   appMode: AppMode;
   setAppMode: (mode: AppMode) => void;
+
   activeTab: AppTab;
   setActiveTab: (tab: AppTab) => void;
+
   company: CompanyInfo;
+
   unreadChatsCount?: number;
+
   onViewWebsite?: () => void;
   onLockPos?: () => void;
 }
@@ -68,420 +77,1104 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   company,
   onViewWebsite,
-  onLockPos
+  onLockPos,
+  unreadChatsCount = 0,
 }) => {
   const currency = company.currency || '$';
 
+  const buttonBase =
+    'inline-flex items-center justify-center gap-1.5 min-h-10 sm:min-h-8 rounded-lg border text-xs font-medium transition-all active:scale-[0.98]';
+
+  const navBase =
+    'shrink-0 inline-flex items-center gap-1.5 px-3 py-2.5 sm:py-2 rounded-lg whitespace-nowrap text-xs sm:text-sm font-medium transition-all';
+
   return (
-    <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
-      {/* Top Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          {/* Brand & Tagline */}
-          <div className="flex items-center space-x-3">
-            <MagenLogo variant="monogram" size="md" lightText />
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="font-bold text-lg text-slate-100 tracking-tight leading-none">
+    <header
+      className="
+        sticky top-0 z-40 w-full
+        border-b
+        bg-white/95 dark:bg-slate-950/95
+        border-slate-200 dark:border-slate-800
+        text-slate-900 dark:text-white
+        shadow-sm dark:shadow-black/20
+        backdrop-blur-xl
+      "
+    >
+      <div className="mx-auto w-full max-w-7xl px-3 py-3 sm:px-5 lg:px-8">
+
+        {/* =========================================================
+            BRAND + MOBILE ACTIONS
+        ========================================================= */}
+        <div className="flex items-center justify-between gap-3">
+
+          {/* Brand */}
+          <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+
+            <div
+              className="
+                flex h-11 w-11 shrink-0 items-center justify-center
+                overflow-hidden rounded-xl
+                bg-white
+                ring-1 ring-slate-200
+                dark:bg-white
+                dark:ring-slate-700
+              "
+            >
+              <MagenLogo
+                variant="monogram"
+                size="sm"
+                className="h-10 w-10"
+              />
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+
+                <h1
+                  className="
+                    truncate
+                    text-sm sm:text-base lg:text-lg
+                    font-bold
+                    tracking-tight
+                    text-slate-900 dark:text-slate-100
+                  "
+                >
                   {company.name}
                 </h1>
-                <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  Media &amp; Print Solutions
+
+                <span
+                  className="
+                    hidden lg:inline-flex
+                    shrink-0
+                    rounded-full
+                    border
+                    border-emerald-500/30
+                    bg-emerald-500/10
+                    px-2 py-0.5
+                    text-[9px]
+                    font-bold
+                    uppercase
+                    tracking-wider
+                    text-emerald-700
+                    dark:text-emerald-300
+                  "
+                >
+                  Media &amp; Print
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+
+              <p
+                className="
+                  mt-0.5 truncate
+                  text-[10px] sm:text-xs
+                  text-slate-500 dark:text-slate-400
+                "
+              >
                 {company.tagline}
               </p>
             </div>
           </div>
 
-          {/* Controls: Date, Online/Offline Sync, Role Auth */}
-          <div className="flex items-center flex-wrap gap-2 sm:gap-3">
-            {/* Date Selector */}
-            <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-300">
-              <Calendar className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={e => onDateChange(e.target.value)}
-                className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer"
-                title="Select Report Date"
+          {/* Mobile user button */}
+          <button
+            type="button"
+            onClick={onOpenAuth}
+            aria-label="Switch user"
+            className="
+              flex h-10 w-10 shrink-0 items-center justify-center
+              rounded-xl
+              border
+              border-slate-200
+              bg-slate-50
+              text-lg
+              hover:bg-slate-100
+              dark:border-slate-700
+              dark:bg-slate-900
+              dark:hover:bg-slate-800
+              sm:hidden
+            "
+          >
+            {activeUser.avatar || '👤'}
+          </button>
+        </div>
+
+        {/* =========================================================
+            CONTROLS
+        ========================================================= */}
+        <div
+          className="
+            mt-3
+            grid
+            grid-cols-2
+            gap-2
+            sm:flex sm:flex-wrap sm:items-center
+          "
+        >
+
+          {/* Date */}
+          <label
+            className="
+              flex min-w-0 items-center gap-2
+              rounded-lg
+              border
+              border-slate-200
+              bg-slate-50
+              px-2.5
+              py-2
+              text-xs
+              text-slate-600
+              dark:border-slate-700
+              dark:bg-slate-900
+              dark:text-slate-300
+              sm:w-auto
+            "
+          >
+            <Calendar className="h-4 w-4 shrink-0 text-slate-400" />
+
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => onDateChange(e.target.value)}
+              className="
+                min-w-0 w-full
+                bg-transparent
+                text-xs
+                text-slate-700
+                outline-none
+                dark:text-slate-200
+                [color-scheme:light]
+                dark:[color-scheme:dark]
+              "
+              title="Select Report Date"
+            />
+          </label>
+
+          {/* Database status */}
+          <button
+            type="button"
+            onClick={isOnline ? onSyncNow : undefined}
+            disabled={!isOnline}
+            className={`
+              ${buttonBase}
+              px-2.5
+              ${
+                isOnline
+                  ? `
+                    border-emerald-200
+                    bg-emerald-50
+                    text-emerald-700
+                    hover:bg-emerald-100
+                    dark:border-emerald-900
+                    dark:bg-emerald-950/60
+                    dark:text-emerald-300
+                    dark:hover:bg-emerald-950
+                  `
+                  : `
+                    border-amber-200
+                    bg-amber-50
+                    text-amber-700
+                    dark:border-amber-900
+                    dark:bg-amber-950/50
+                    dark:text-amber-300
+                  `
+              }
+            `}
+            title={
+              isOnline
+                ? 'Connected to SQLite database. Click to sync.'
+                : 'Offline mode'
+            }
+          >
+            {isOnline ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+
+                <Database className="h-3.5 w-3.5" />
+
+                <span className="hidden sm:inline">
+                  SQLite Online
+                </span>
+
+                <span className="sm:hidden">
+                  Online
+                </span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="h-3.5 w-3.5" />
+                <span>
+                  Offline
+                  {pendingSyncCount > 0
+                    ? ` (${pendingSyncCount})`
+                    : ''}
+                </span>
+              </>
+            )}
+          </button>
+
+          {/* Sync */}
+          <button
+            id="sync-now-button"
+            type="button"
+            onClick={onSyncNow}
+            disabled={isSyncing || !isOnline}
+            className="
+              col-span-2
+              sm:col-span-1
+              min-h-10
+              sm:min-h-8
+              inline-flex
+              items-center
+              justify-center
+              gap-1.5
+              rounded-lg
+              border
+              border-[#0C2D64]
+              bg-[#0C2D64]
+              px-3
+              text-xs
+              font-semibold
+              text-white
+              transition
+              hover:bg-[#0a2552]
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+            "
+            title="Sync now with SQLite database"
+          >
+            <RefreshCw
+              className={`h-3.5 w-3.5 text-emerald-300 ${
+                isSyncing ? 'animate-spin' : ''
+              }`}
+            />
+
+            <span>
+              {isSyncing
+                ? 'Syncing...'
+                : pendingSyncCount > 0
+                  ? `Sync (${pendingSyncCount})`
+                  : 'Sync DB'}
+            </span>
+          </button>
+
+          {/* User */}
+          <button
+            id="switch-user-button"
+            type="button"
+            onClick={onOpenAuth}
+            className="
+              hidden
+              sm:flex
+              items-center
+              gap-2
+              rounded-lg
+              border
+              border-slate-200
+              bg-slate-50
+              px-2.5
+              py-1.5
+              text-xs
+              transition
+              hover:bg-slate-100
+              dark:border-slate-700
+              dark:bg-slate-900
+              dark:hover:bg-slate-800
+            "
+            title="Switch user / role"
+          >
+            <span className="text-base">
+              {activeUser.avatar || '👤'}
+            </span>
+
+            <div className="text-left">
+              <span
+                className="
+                  block max-w-[100px] truncate
+                  font-semibold
+                  text-slate-800
+                  dark:text-slate-200
+                "
+              >
+                {activeUser.name.split(' ')[0]}
+              </span>
+
+              <span
+                className="
+                  flex items-center gap-1
+                  text-[10px]
+                  capitalize
+                  text-slate-500
+                  dark:text-slate-400
+                "
+              >
+                {activeUser.role === 'admin' ? (
+                  <Shield className="h-2.5 w-2.5 text-amber-500" />
+                ) : (
+                  <UserCheck className="h-2.5 w-2.5 text-blue-500" />
+                )}
+
+                {activeUser.role}
+              </span>
+            </div>
+          </button>
+
+          {/* Settings */}
+          {activeUser.role === 'admin' && (
+            <button
+              id="open-settings-button"
+              type="button"
+              onClick={onOpenSettings}
+              className="
+                inline-flex
+                h-10
+                w-10
+                items-center
+                justify-center
+                rounded-lg
+                border
+                border-slate-200
+                bg-slate-50
+                text-slate-600
+                transition
+                hover:bg-slate-100
+                dark:border-slate-700
+                dark:bg-slate-900
+                dark:text-slate-300
+                dark:hover:bg-slate-800
+                sm:h-8
+                sm:w-8
+              "
+              title="Business Settings & Branding"
+            >
+              <Sliders className="h-4 w-4" />
+            </button>
+          )}
+
+          {/* Public website */}
+          {onViewWebsite && (
+            <button
+              id="header-view-website-btn"
+              type="button"
+              onClick={onViewWebsite}
+              className="
+                inline-flex
+                min-h-10
+                sm:min-h-8
+                items-center
+                justify-center
+                gap-1.5
+                rounded-lg
+                border
+                border-emerald-200
+                bg-emerald-50
+                px-3
+                text-xs
+                font-semibold
+                text-emerald-700
+                transition
+                hover:bg-emerald-100
+                dark:border-emerald-900
+                dark:bg-emerald-950/50
+                dark:text-emerald-300
+                dark:hover:bg-emerald-950
+              "
+              title="Open public customer website"
+            >
+              <Globe className="h-3.5 w-3.5" />
+              <span>Website</span>
+            </button>
+          )}
+
+          {/* Lock POS */}
+          {onLockPos && (
+            <button
+              id="header-lock-pos-btn"
+              type="button"
+              onClick={onLockPos}
+              className="
+                inline-flex
+                min-h-10
+                sm:min-h-8
+                items-center
+                justify-center
+                gap-1.5
+                rounded-lg
+                border
+                border-slate-200
+                bg-slate-50
+                px-3
+                text-xs
+                font-medium
+                text-slate-600
+                transition
+                hover:border-rose-200
+                hover:bg-rose-50
+                hover:text-rose-600
+                dark:border-slate-700
+                dark:bg-slate-900
+                dark:text-slate-300
+                dark:hover:border-rose-900
+                dark:hover:bg-rose-950/50
+                dark:hover:text-rose-300
+              "
+              title="Lock POS Terminal"
+            >
+              <Lock className="h-3.5 w-3.5" />
+              <span>Lock</span>
+            </button>
+          )}
+        </div>
+
+        {/* =========================================================
+            KPI STRIP
+        ========================================================= */}
+        <div
+          className="
+            mt-3
+            grid
+            grid-cols-2
+            gap-2
+            border-t
+            border-slate-200
+            pt-3
+            dark:border-slate-800
+            sm:grid-cols-4
+            sm:gap-2.5
+          "
+        >
+
+          {/* Revenue */}
+          <KpiCard
+            label="Daily Revenue"
+            value={`${currency}${summary.totalRevenue.toFixed(2)}`}
+            valueClass="text-emerald-600 dark:text-emerald-400"
+            icon={
+              <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            }
+            iconClass="
+              bg-emerald-50
+              border-emerald-200
+              dark:bg-emerald-950/60
+              dark:border-emerald-900
+            "
+          />
+
+          {/* Expenses */}
+          <KpiCard
+            label="Daily Costs"
+            value={`${currency}${summary.totalExpenses.toFixed(2)}`}
+            valueClass="text-rose-600 dark:text-rose-400"
+            icon={
+              <TrendingUp className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+            }
+            iconClass="
+              bg-rose-50
+              border-rose-200
+              dark:bg-rose-950/60
+              dark:border-rose-900
+            "
+          />
+
+          {/* Profit */}
+          <KpiCard
+            label="Net Profit"
+            value={`${currency}${summary.netProfit.toFixed(2)}`}
+            valueClass={
+              summary.netProfit >= 0
+                ? 'text-teal-600 dark:text-teal-400'
+                : 'text-amber-600 dark:text-amber-400'
+            }
+            icon={
+              <span
+                className={
+                  summary.netProfit >= 0
+                    ? 'text-xs font-bold text-teal-600 dark:text-teal-400'
+                    : 'text-xs font-bold text-amber-600 dark:text-amber-400'
+                }
+              >
+                {summary.totalRevenue > 0
+                  ? `${Math.round(
+                      (summary.netProfit / summary.totalRevenue) * 100
+                    )}%`
+                  : '0%'}
+              </span>
+            }
+            iconClass="
+              bg-teal-50
+              border-teal-200
+              dark:bg-teal-950/60
+              dark:border-teal-900
+            "
+          />
+
+          {/* Stock */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('inventory')}
+            className="
+              flex
+              min-w-0
+              items-center
+              justify-between
+              gap-2
+              rounded-xl
+              border
+              border-slate-200
+              bg-slate-50
+              p-2.5
+              text-left
+              transition
+              hover:bg-slate-100
+              dark:border-slate-800
+              dark:bg-slate-900/70
+              dark:hover:bg-slate-900
+            "
+          >
+            <div className="min-w-0">
+              <p
+                className="
+                  truncate
+                  text-[10px] sm:text-[11px]
+                  font-medium
+                  text-slate-500
+                  dark:text-slate-400
+                "
+              >
+                Stock Status
+              </p>
+
+              {lowStockCount > 0 ? (
+                <p className="truncate text-sm sm:text-base font-bold text-amber-600 dark:text-amber-400">
+                  {lowStockCount} Low Alert
+                  {lowStockCount > 1 ? 's' : ''}
+                </p>
+              ) : (
+                <p className="truncate text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400">
+                  All Optimal
+                </p>
+              )}
+            </div>
+
+            <div
+              className={`
+                flex
+                h-8
+                w-8
+                shrink-0
+                items-center
+                justify-center
+                rounded-lg
+                border
+                ${
+                  lowStockCount > 0
+                    ? `
+                      border-amber-200
+                      bg-amber-50
+                      dark:border-amber-900
+                      dark:bg-amber-950/60
+                    `
+                    : `
+                      border-slate-200
+                      bg-white
+                      dark:border-slate-700
+                      dark:bg-slate-800
+                    `
+                }
+              `}
+            >
+              <AlertTriangle
+                className={`
+                  h-4 w-4
+                  ${
+                    lowStockCount > 0
+                      ? 'text-amber-500'
+                      : 'text-slate-400'
+                  }
+                `}
               />
             </div>
-
-            {/* Online / Offline Sync status pill */}
-            <div className="flex items-center space-x-1.5">
-              {isOnline ? (
-                <div
-                  className="flex items-center bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 px-2.5 py-1 rounded-lg text-xs font-medium space-x-1.5 cursor-pointer hover:bg-emerald-900/90 transition"
-                  onClick={onSyncNow}
-                  title="Connected to SQLite Database. Click to sync now."
-                >
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <Database className="w-3.5 h-3.5 text-emerald-300" />
-                  <span className="hidden sm:inline">SQLite DB Online</span>
-                  <span className="sm:hidden">Online</span>
-                </div>
-              ) : (
-                <div
-                  className="flex items-center bg-amber-950/90 border border-amber-700 text-amber-300 px-2.5 py-1 rounded-lg text-xs font-medium space-x-1.5"
-                  title="Offline mode. All data is saved locally and will auto-sync with SQLite when connected."
-                >
-                  <WifiOff className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Offline ({pendingSyncCount} queued)</span>
-                </div>
-              )}
-
-              {/* Sync Trigger button */}
-              <button
-                id="sync-now-button"
-                onClick={onSyncNow}
-                disabled={isSyncing || !isOnline}
-                className="flex items-center space-x-1 px-2.5 py-1 bg-[#0C2D64] hover:bg-[#081e44] disabled:opacity-50 text-white text-xs font-medium rounded-lg transition shadow-xs border border-blue-800 cursor-pointer"
-                title="Sync now with SQLite database"
-              >
-                <RefreshCw className={`w-3 h-3 text-emerald-400 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">
-                  {isSyncing ? 'Syncing...' : pendingSyncCount > 0 ? `Sync (${pendingSyncCount})` : 'Sync DB'}
-                </span>
-              </button>
-            </div>
-
-            {/* Active User Chip & Switcher */}
-            <button
-              id="switch-user-button"
-              onClick={onOpenAuth}
-              className="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2.5 py-1 rounded-lg transition text-xs group"
-              title="Click to Switch User / Role"
-            >
-              <span className="text-base leading-none">{activeUser.avatar || '👤'}</span>
-              <div className="text-left">
-                <span className="text-slate-200 font-medium block leading-tight">
-                  {activeUser.name.split(' ')[0]}
-                </span>
-                <span className="text-[10px] text-slate-400 capitalize flex items-center gap-0.5">
-                  {activeUser.role === 'admin' ? (
-                    <Shield className="w-2.5 h-2.5 text-amber-400 inline" />
-                  ) : (
-                    <UserCheck className="w-2.5 h-2.5 text-blue-400 inline" />
-                  )}
-                  {activeUser.role}
-                </span>
-              </div>
-            </button>
-
-            {/* Settings */}
-            {activeUser.role === 'admin' && (
-              <button
-                id="open-settings-button"
-                onClick={onOpenSettings}
-                className="p-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300 transition"
-                title="Business Settings & Branding"
-              >
-                <Sliders className="w-4 h-4" />
-              </button>
-            )}
-
-            {/* View Public Customer Showcase */}
-            {onViewWebsite && (
-              <button
-                id="header-view-website-btn"
-                onClick={onViewWebsite}
-                className="flex items-center space-x-1.5 px-2.5 py-1 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/80 text-emerald-300 text-xs font-semibold rounded-lg transition"
-                title="Switch to Public Customer Showcase Website"
-              >
-                <Globe className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="hidden sm:inline">Public Website</span>
-              </button>
-            )}
-
-            {/* Lock POS / Return to Public Portal */}
-            {onLockPos && (
-              <button
-                id="header-lock-pos-btn"
-                onClick={onLockPos}
-                className="flex items-center space-x-1 px-2 py-1 bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-800 text-slate-300 hover:text-rose-300 text-xs font-medium rounded-lg transition"
-                title="Lock POS Terminal & Sign Out"
-              >
-                <Lock className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Lock POS</span>
-              </button>
-            )}
-          </div>
+          </button>
         </div>
 
-        {/* Quick KPI Strip for Selected Date */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3 pt-3 border-t border-slate-800/80">
-          <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] text-slate-400 font-medium">Daily Revenue</p>
-              <p className="text-base font-bold text-emerald-400">
-                {currency}{summary.totalRevenue.toFixed(2)}
-              </p>
-            </div>
-            <div className="w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-800/50 flex items-center justify-center">
-              <DollarSign className="w-4 h-4 text-emerald-400" />
-            </div>
-          </div>
-
-          <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] text-slate-400 font-medium">Daily Costs & Exp.</p>
-              <p className="text-base font-bold text-rose-400">
-                {currency}{summary.totalExpenses.toFixed(2)}
-              </p>
-            </div>
-            <div className="w-8 h-8 rounded-lg bg-rose-950 border border-rose-800/50 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-rose-400" />
-            </div>
-          </div>
-
-          <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] text-slate-400 font-medium">Net Profit</p>
-              <p className={`text-base font-bold ${summary.netProfit >= 0 ? 'text-teal-300' : 'text-amber-400'}`}>
-                {currency}{summary.netProfit.toFixed(2)}
-              </p>
-            </div>
-            <div className="w-8 h-8 rounded-lg bg-teal-950 border border-teal-800/50 flex items-center justify-center">
-              <span className="text-xs font-bold text-teal-400">
-                {summary.totalRevenue > 0 ? `${Math.round((summary.netProfit / summary.totalRevenue) * 100)}%` : '0%'}
-              </span>
-            </div>
-          </div>
-
-          <div 
-            onClick={() => setActiveTab('inventory')}
-            className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 flex items-center justify-between cursor-pointer hover:bg-slate-800 transition"
+        {/* =========================================================
+            WORKSPACE SWITCHER
+        ========================================================= */}
+        <div
+          className="
+            mt-3
+            border-t
+            border-slate-200
+            pt-3
+            dark:border-slate-800
+          "
+        >
+          <div
+            className="
+              flex
+              flex-col
+              gap-2
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
           >
-            <div>
-              <p className="text-[11px] text-slate-400 font-medium">Stock Status</p>
-              <p className="text-base font-bold text-slate-100">
-                {lowStockCount > 0 ? (
-                  <span className="text-amber-400">{lowStockCount} Low Alert{lowStockCount > 1 ? 's' : ''}</span>
-                ) : (
-                  <span className="text-emerald-400">All Optimal</span>
-                )}
-              </p>
-            </div>
-            <div className={`w-8 h-8 rounded-lg ${lowStockCount > 0 ? 'bg-amber-950 border-amber-800/50' : 'bg-slate-750 border-slate-700'} border flex items-center justify-center`}>
-              <AlertTriangle className={`w-4 h-4 ${lowStockCount > 0 ? 'text-amber-400' : 'text-slate-400'}`} />
-            </div>
-          </div>
-        </div>
-
-        {/* Operating Mode Switcher: Local POS vs Marketing */}
-        <div className="mt-3.5 pt-3 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="flex items-center space-x-1.5 bg-slate-950/90 p-1 rounded-xl border border-slate-800 shadow-inner self-start">
-            <button
-              id="mode-pos-button"
-              onClick={() => setAppMode('pos')}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                appMode === 'pos'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
-              }`}
+            <div
+              className="
+                flex
+                w-full
+                overflow-x-auto
+                rounded-xl
+                border
+                border-slate-200
+                bg-slate-100
+                p-1
+                dark:border-slate-800
+                dark:bg-slate-900
+                sm:w-auto
+              "
             >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Local POS Terminal</span>
-              <span className={`text-[10px] uppercase font-mono px-1.5 py-0.5 rounded ${
-                appMode === 'pos' ? 'bg-emerald-900/90 text-emerald-200 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'
-              }`}>
-                Counter &amp; Till
-              </span>
-            </button>
+              <button
+                id="mode-pos-button"
+                type="button"
+                onClick={() => setAppMode('pos')}
+                className={`
+                  flex
+                  min-w-max
+                  flex-1
+                  items-center
+                  justify-center
+                  gap-1.5
+                  rounded-lg
+                  px-3
+                  py-2
+                  text-xs
+                  font-bold
+                  transition
+                  sm:flex-none
+                  ${
+                    appMode === 'pos'
+                      ? `
+                        bg-emerald-600
+                        text-white
+                        shadow-sm
+                      `
+                      : `
+                        text-slate-600
+                        hover:bg-white
+                        dark:text-slate-400
+                        dark:hover:bg-slate-800
+                      `
+                  }
+                `}
+              >
+                <Printer className="h-3.5 w-3.5" />
 
-            <button
-              id="mode-marketing-button"
-              onClick={() => setAppMode('marketing')}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                appMode === 'marketing'
-                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-blue-400'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
-              }`}
-            >
-              <Megaphone className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Marketing &amp; Commercial</span>
-              <span className={`text-[10px] uppercase font-mono px-1.5 py-0.5 rounded ${
-                appMode === 'marketing' ? 'bg-blue-900/90 text-blue-200 border border-blue-400/40' : 'bg-slate-800 text-slate-400'
-              }`}>
-                B2B &amp; Quotes
-              </span>
-            </button>
-          </div>
+                <span>POS</span>
 
-          <div className="text-[11px] text-slate-400 hidden sm:flex items-center space-x-2">
-            <span>Current Workspace:</span>
-            <span className={`font-semibold px-2 py-0.5 rounded-md ${
-              appMode === 'pos'
-                ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                : 'bg-blue-950 text-blue-300 border border-blue-800'
-            }`}>
-              {appMode === 'pos' ? '🛒 Front Counter / POS Operations' : '📢 Outbound Marketing & Client Proposals'}
-            </span>
-          </div>
-        </div>
-
-        {/* Separated Navigation Tabs */}
-        {appMode === 'pos' ? (
-          /* LOCAL POS TABS */
-          <nav className="flex space-x-1 sm:space-x-2 mt-2.5 overflow-x-auto pb-1 text-xs sm:text-sm font-medium scrollbar-none">
-            <button
-              id="tab-pos"
-              onClick={() => setActiveTab('pos')}
-              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'pos'
-                  ? 'bg-emerald-600 text-white shadow-sm font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <Printer className="w-4 h-4" />
-              <span>New Sale / Receipt POS</span>
-            </button>
-
-            <button
-              id="tab-reports"
-              onClick={() => setActiveTab('reports')}
-              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'reports'
-                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <Calendar className="w-4 h-4" />
-              <span>Daily Reports &amp; Cash-up</span>
-            </button>
-
-            <button
-              id="tab-costs"
-              onClick={() => setActiveTab('costs')}
-              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'costs'
-                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <TrendingUp className="w-4 h-4" />
-              <span>Daily Costs &amp; Expenses</span>
-            </button>
-
-            <button
-              id="tab-inventory"
-              onClick={() => setActiveTab('inventory')}
-              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'inventory'
-                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <AlertTriangle className="w-4 h-4" />
-              <span>Inventory &amp; Stock Depletion</span>
-              {lowStockCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 font-bold text-[10px] flex items-center justify-center ml-1">
-                  {lowStockCount}
+                <span className="hidden sm:inline text-[10px] uppercase opacity-70">
+                  Counter &amp; Till
                 </span>
-              )}
-            </button>
+              </button>
+
+              <button
+                id="mode-marketing-button"
+                type="button"
+                onClick={() => setAppMode('marketing')}
+                className={`
+                  flex
+                  min-w-max
+                  flex-1
+                  items-center
+                  justify-center
+                  gap-1.5
+                  rounded-lg
+                  px-3
+                  py-2
+                  text-xs
+                  font-bold
+                  transition
+                  sm:flex-none
+                  ${
+                    appMode === 'marketing'
+                      ? `
+                        bg-[#0C2D64]
+                        text-white
+                        shadow-sm
+                      `
+                      : `
+                        text-slate-600
+                        hover:bg-white
+                        dark:text-slate-400
+                        dark:hover:bg-slate-800
+                      `
+                  }
+                `}
+              >
+                <Megaphone className="h-3.5 w-3.5 text-emerald-500" />
+
+                <span>Marketing</span>
+
+                <span className="hidden sm:inline text-[10px] uppercase opacity-70">
+                  B2B &amp; Quotes
+                </span>
+              </button>
+            </div>
+
+            <div className="hidden text-right text-[11px] text-slate-500 dark:text-slate-400 sm:block">
+              Current Workspace:
+              <span
+                className={`
+                  ml-2
+                  rounded-md
+                  border
+                  px-2
+                  py-1
+                  font-semibold
+                  ${
+                    appMode === 'pos'
+                      ? `
+                        border-emerald-200
+                        bg-emerald-50
+                        text-emerald-700
+                        dark:border-emerald-900
+                        dark:bg-emerald-950/50
+                        dark:text-emerald-300
+                      `
+                      : `
+                        border-blue-200
+                        bg-blue-50
+                        text-blue-700
+                        dark:border-blue-900
+                        dark:bg-blue-950/50
+                        dark:text-blue-300
+                      `
+                  }
+                `}
+              >
+                {appMode === 'pos'
+                  ? 'Front Counter / POS'
+                  : 'Marketing & Client Proposals'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* =========================================================
+            NAVIGATION
+        ========================================================= */}
+        {appMode === 'pos' ? (
+          <nav
+            aria-label="POS navigation"
+            className="
+              -mx-3
+              mt-2
+              flex
+              gap-1
+              overflow-x-auto
+              px-3
+              pb-1
+              scrollbar-none
+              sm:-mx-5
+              sm:px-5
+              lg:-mx-8
+              lg:px-8
+            "
+          >
+            <NavButton
+              active={activeTab === 'pos'}
+              onClick={() => setActiveTab('pos')}
+              icon={<Printer />}
+              label="New Sale / POS"
+              activeClass="bg-emerald-600 text-white"
+            />
+
+            <NavButton
+              active={activeTab === 'reports'}
+              onClick={() => setActiveTab('reports')}
+              icon={<Calendar />}
+              label="Daily Reports"
+            />
+
+            <NavButton
+              active={activeTab === 'costs'}
+              onClick={() => setActiveTab('costs')}
+              icon={<TrendingUp />}
+              label="Costs & Expenses"
+            />
+
+            <NavButton
+              active={activeTab === 'inventory'}
+              onClick={() => setActiveTab('inventory')}
+              icon={<AlertTriangle />}
+              label="Inventory"
+              badge={lowStockCount > 0 ? lowStockCount : undefined}
+            />
 
             {activeUser.role === 'admin' && (
-              <button
-                id="tab-services"
+              <NavButton
+                active={activeTab === 'services'}
                 onClick={() => setActiveTab('services')}
-                className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                  activeTab === 'services'
-                    ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                <Wrench className="w-4 h-4" />
-                <span>Services &amp; Pricing</span>
-              </button>
+                icon={<Wrench />}
+                label="Services & Pricing"
+              />
             )}
 
-            <button
-              id="tab-chats"
+            <NavButton
+              active={activeTab === 'chats'}
               onClick={() => setActiveTab('chats')}
-              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'chats'
-                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>Workshop &amp; AI Chat</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            </button>
+              icon={<MessageSquare />}
+              label="Workshop & AI Chat"
+              badge={
+                unreadChatsCount > 0
+                  ? unreadChatsCount
+                  : undefined
+              }
+              live
+            />
           </nav>
         ) : (
-          /* MARKETING & COMMERCIAL TABS */
-          <nav className="flex space-x-1 sm:space-x-2 mt-2.5 overflow-x-auto pb-1 text-xs sm:text-sm font-medium scrollbar-none">
-            <button
-              id="tab-quotations"
+          <nav
+            aria-label="Marketing navigation"
+            className="
+              -mx-3
+              mt-2
+              flex
+              gap-1
+              overflow-x-auto
+              px-3
+              pb-1
+              scrollbar-none
+              sm:-mx-5
+              sm:px-5
+              lg:-mx-8
+              lg:px-8
+            "
+          >
+            <NavButton
+              active={activeTab === 'quotations'}
               onClick={() => setActiveTab('quotations')}
-              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'quotations'
-                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400 font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <FileText className="w-4 h-4 text-emerald-400" />
-              <span>Quotations &amp; Cotation</span>
-            </button>
+              icon={<FileText />}
+              label="Quotations"
+            />
 
-            <button
-              id="tab-campaigns"
+            <NavButton
+              active={activeTab === 'campaigns'}
               onClick={() => setActiveTab('campaigns')}
-              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'campaigns'
-                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400 font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <Megaphone className="w-4 h-4 text-emerald-400" />
-              <span>Campaigns &amp; Specials</span>
-            </button>
+              icon={<Megaphone />}
+              label="Campaigns"
+            />
 
-            <button
-              id="tab-clients"
+            <NavButton
+              active={activeTab === 'clients'}
               onClick={() => setActiveTab('clients')}
-              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'clients'
-                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400 font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <Users className="w-4 h-4 text-cyan-400" />
-              <span>Client Leads &amp; CRM</span>
-            </button>
+              icon={<Users />}
+              label="Client CRM"
+            />
 
-            <button
-              id="tab-ai-marketing"
+            <NavButton
+              active={activeTab === 'ai_marketing'}
               onClick={() => setActiveTab('ai_marketing')}
-              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'ai_marketing'
-                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400 font-semibold'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              <span>AI Marketing Copilot</span>
-            </button>
+              icon={<Sparkles />}
+              label="AI Marketing"
+            />
 
-            <button
-              id="tab-analytics"
+            <NavButton
+              active={activeTab === 'analytics'}
               onClick={() => setActiveTab('analytics')}
-              className={`px-3 py-2 rounded-lg transition whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'analytics'
-                  ? 'bg-[#0C2D64] text-white shadow-sm ring-1 ring-emerald-400/50'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Performance &amp; Graphs</span>
-            </button>
+              icon={<BarChart3 />}
+              label="Performance"
+            />
           </nav>
         )}
       </div>
     </header>
+  );
+};
+
+/* ===============================================================
+   KPI CARD
+================================================================ */
+
+interface KpiCardProps {
+  label: string;
+  value: string;
+  valueClass: string;
+  icon: React.ReactNode;
+  iconClass: string;
+}
+
+const KpiCard: React.FC<KpiCardProps> = ({
+  label,
+  value,
+  valueClass,
+  icon,
+  iconClass,
+}) => {
+  return (
+    <div
+      className="
+        flex
+        min-w-0
+        items-center
+        justify-between
+        gap-2
+        rounded-xl
+        border
+        border-slate-200
+        bg-slate-50
+        p-2.5
+        dark:border-slate-800
+        dark:bg-slate-900/70
+      "
+    >
+      <div className="min-w-0">
+        <p
+          className="
+            truncate
+            text-[10px] sm:text-[11px]
+            font-medium
+            text-slate-500
+            dark:text-slate-400
+          "
+        >
+          {label}
+        </p>
+
+        <p
+          className={`
+            truncate
+            text-sm sm:text-base
+            font-bold
+            ${valueClass}
+          `}
+        >
+          {value}
+        </p>
+      </div>
+
+      <div
+        className={`
+          flex
+          h-8
+          w-8
+          shrink-0
+          items-center
+          justify-center
+          rounded-lg
+          border
+          ${iconClass}
+        `}
+      >
+        {icon}
+      </div>
+    </div>
+  );
+};
+
+/* ===============================================================
+   NAV BUTTON
+================================================================ */
+
+interface NavButtonProps {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  badge?: number;
+  live?: boolean;
+  activeClass?: string;
+}
+
+const NavButton: React.FC<NavButtonProps> = ({
+  active,
+  onClick,
+  icon,
+  label,
+  badge,
+  live = false,
+  activeClass,
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        shrink-0
+        inline-flex
+        min-h-10
+        sm:min-h-9
+        items-center
+        gap-1.5
+        rounded-lg
+        px-3
+        py-2
+        text-xs
+        sm:text-sm
+        font-medium
+        whitespace-nowrap
+        transition-all
+        ${
+          active
+            ? activeClass ||
+              `
+                bg-[#0C2D64]
+                text-white
+                shadow-sm
+                ring-1
+                ring-emerald-400/40
+              `
+            : `
+              text-slate-600
+              hover:bg-slate-100
+              hover:text-slate-900
+              dark:text-slate-400
+              dark:hover:bg-slate-900
+              dark:hover:text-white
+            `
+        }
+      `}
+    >
+      <span className="h-4 w-4 shrink-0 [&>svg]:h-4 [&>svg]:w-4">
+        {icon}
+      </span>
+
+      <span>{label}</span>
+
+      {badge !== undefined && (
+        <span
+          className="
+            flex
+            min-w-5
+            h-5
+            items-center
+            justify-center
+            rounded-full
+            bg-amber-500
+            px-1
+            text-[10px]
+            font-bold
+            text-slate-950
+          "
+        >
+          {badge}
+        </span>
+      )}
+
+      {live && (
+        <span
+          className="
+            h-2
+            w-2
+            shrink-0
+            rounded-full
+            bg-emerald-400
+            shadow-[0_0_8px_rgba(52,211,153,0.7)]
+          "
+        />
+      )}
+    </button>
   );
 };
