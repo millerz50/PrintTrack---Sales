@@ -24,7 +24,7 @@ import { HeaderBrand } from './HeaderBrand';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import { KpiStrip } from './KpiStrip';
-import { AppNavigation } from './navigation/AppNavigation';
+import { AppNavigation } from '@components/navigation/AppNavigation';
 
 import { AppTab } from '../hooks/useAppNavigation';
 
