@@ -173,16 +173,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en-ZW">
-      <head>
+      <body className="antialiased bg-slate-950 text-slate-100 min-h-screen">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(structuredData),
           }}
         />
-      </head>
-
-      <body className="antialiased bg-slate-950 text-slate-100 min-h-screen">
         {children}
       </body>
     </html>
