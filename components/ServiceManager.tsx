@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { CheckCircle2, Edit2, Plus, Search, Trash2, X, Wrench } from 'lucide-react';
 import { PrintingCategory, ServiceItem, User } from '../types';
 import { CompanyInfo, storage } from '../services/storage';
+import { saveServiceItemAction, deleteServiceItemAction } from '@/app/actions/services';
 
 interface ServiceManagerProps {
   services: ServiceItem[];
@@ -52,7 +53,16 @@ export const ServiceManager: React.FC<ServiceManagerProps> = ({ services, invent
   const save = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.code.trim() || !form.unit.trim()) return;
-    storage.saveService({ ...form, name: form.name.trim(), code: form.code.trim().toUpperCase(), unit: form.unit.trim(), price: Math.max(0, Number(form.price) || 0), notes: form.notes?.trim() || undefined });
+    const payload = {
+      ...form,
+      name: form.name.trim(),
+      code: form.code.trim().toUpperCase(),
+      unit: form.unit.trim(),
+      price: Math.max(0, Number(form.price) || 0),
+      notes: form.notes?.trim() || undefined
+    };
+    storage.saveService(payload);
+    saveServiceItemAction(payload).catch(err => console.warn('[ServiceManager] DB save error:', err));
     setShowForm(false);
   };
 
@@ -76,8 +86,33 @@ export const ServiceManager: React.FC<ServiceManagerProps> = ({ services, invent
         <thead className="bg-slate-50 border-b border-slate-200"><tr><th className="text-left p-3">Code</th><th className="text-left p-3">Service</th><th className="text-left p-3">Category</th><th className="text-left p-3">Unit</th><th className="text-right p-3">Price</th><th className="text-center p-3">Status</th><th className="text-right p-3">Actions</th></tr></thead>
         <tbody className="divide-y divide-slate-100">{filtered.map(s => <tr key={s.id} className="hover:bg-slate-50">
           <td className="p-3 font-mono text-slate-500">{s.code}</td><td className="p-3 font-semibold text-slate-800">{s.name}{s.notes && <div className="text-[10px] text-amber-600 mt-1">{s.notes}</div>}</td><td className="p-3 text-slate-500">{s.category}</td><td className="p-3 text-slate-500">{s.unit}</td><td className="p-3 text-right font-bold text-indigo-700">{currency}{s.price.toFixed(2)}</td>
-          <td className="p-3 text-center"><button onClick={() => storage.toggleService(s.id)} className={`px-2 py-1 rounded-full text-[10px] font-bold ${s.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{s.active ? 'Active' : 'Hidden'}</button></td>
-          <td className="p-3 text-right"><button onClick={() => openEdit(s)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded"><Edit2 className="w-3.5 h-3.5" /></button><button onClick={() => confirm(`Delete ${s.name}?`) && storage.deleteService(s.id)} className="p-1.5 text-rose-600 hover:bg-rose-50 rounded"><Trash2 className="w-3.5 h-3.5" /></button></td>
+          <td className="p-3 text-center">
+            <button
+              onClick={() => {
+                storage.toggleService(s.id);
+                saveServiceItemAction({ ...s, active: !s.active }).catch(err => console.warn('[ServiceManager] DB toggle error:', err));
+              }}
+              className={`px-2 py-1 rounded-full text-[10px] font-bold ${s.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}
+            >
+              {s.active ? 'Active' : 'Hidden'}
+            </button>
+          </td>
+          <td className="p-3 text-right">
+            <button onClick={() => openEdit(s)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded">
+              <Edit2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => {
+                if (confirm(`Delete ${s.name}?`)) {
+                  storage.deleteService(s.id);
+                  deleteServiceItemAction(s.id).catch(err => console.warn('[ServiceManager] DB delete error:', err));
+                }
+              }}
+              className="p-1.5 text-rose-600 hover:bg-rose-50 rounded"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </td>
         </tr>)}{filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-slate-400">No services found.</td></tr>}</tbody>
       </table></div>
     </div>

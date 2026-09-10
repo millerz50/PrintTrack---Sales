@@ -85,3 +85,23 @@ export async function createSaleReceiptAction(receipt: SaleReceipt): Promise<{ s
     return { success: false, error: error.message || 'Failed to record sale receipt in database' };
   }
 }
+
+export async function deleteSaleReceiptAction(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Delete receipt items first
+    await prisma.saleItem.deleteMany({
+      where: { receiptId: id }
+    });
+    // Delete the sale receipt
+    await prisma.saleReceipt.delete({
+      where: { id }
+    });
+
+    revalidatePath('/');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[deleteSaleReceiptAction] Error:', error);
+    return { success: false, error: error.message || 'Failed to delete sale receipt' };
+  }
+}
+

@@ -72,3 +72,17 @@ export async function updateQuotationStatusAction(
     return { success: false, error: error.message || 'Failed to update quotation' };
   }
 }
+
+export async function deleteQuotationAction(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await prisma.quotation.delete({
+      where: { id }
+    });
+    revalidatePath('/');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[deleteQuotationAction] Error:', error);
+    return { success: false, error: error.message || 'Failed to delete quotation' };
+  }
+}
+

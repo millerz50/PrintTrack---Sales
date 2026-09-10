@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { ServiceItem, QuotationItem, Quotation } from '@/types';
 import { CompanyInfo, storage } from '@/services/storage';
+import { createQuotationAction } from '@/app/actions/quotations';
 
 interface ClientCotationModalProps {
   isOpen: boolean;
@@ -171,6 +172,10 @@ export function ClientCotationModal({
         clientNotes: clientNotes.trim() || undefined,
         promoCode: promoCode.trim() || undefined,
         discount: discountAmount
+      });
+
+      createQuotationAction(created).catch(err => {
+        console.warn('[CotationModal] Failed to persist quotation to DB:', err);
       });
 
       setSubmittedQuote(created);
@@ -329,7 +334,7 @@ export function ClientCotationModal({
                     id="client-name-input"
                     type="text"
                     required
-                    placeholder="e.g. Mr. Farai Mukamuri"
+                    placeholder="e.g. Tendai Chikore / Procurement Officer"
                     value={customerName}
                     onChange={e => setCustomerName(e.target.value)}
                     className="w-full text-xs py-2 px-3 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:border-[#0C2D64] focus:ring-1 focus:ring-[#0C2D64] outline-none"

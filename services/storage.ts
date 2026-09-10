@@ -123,14 +123,14 @@ export interface CompanyInfo {
 }
 
 export const DEFAULT_COMPANY: CompanyInfo = {
-  name: 'Magen Integrated Solutions',
-  tagline: 'Media & Print Solutions | Environmental Consultancy',
+  name: 'Magen Integrated Business Solutions (MIBS)',
+  tagline: 'MIBS Media & Print Solutions | Integrated Business & Environmental Consultancy',
   phone: '+263 77 123 4567 / +263 71 987 6543',
-  email: 'orders@magensolutions.com',
-  address: 'Media & Print Hub, Environmental Consultancy Wing',
+  email: 'orders@mibs.co.zw',
+  address: 'Stand 448, Mount Darwin Commercial Centre / Media & Print Hub',
   currency: '$',
   taxRate: 0,
-  receiptFooter: 'Quality Media & Print Solutions | Environmental Consultancy. Thank you for partnering with Magen!'
+  receiptFooter: 'Magen Integrated Business Solutions (MIBS) - Thank you for your business!'
 };
 
 export interface SyncQueueItem {

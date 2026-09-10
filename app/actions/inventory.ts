@@ -92,3 +92,17 @@ export async function saveInventoryItemAction(item: InventoryItem): Promise<{ su
     return { success: false, error: error.message || 'Failed to save inventory item' };
   }
 }
+
+export async function deleteInventoryItemAction(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await prisma.inventoryItem.delete({
+      where: { id }
+    });
+    revalidatePath('/');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[deleteInventoryItemAction] Error:', error);
+    return { success: false, error: error.message || 'Failed to delete inventory item' };
+  }
+}
+

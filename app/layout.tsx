@@ -9,45 +9,39 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
   title: {
-    default: 'Magen Integrated Services | Printing & Digital Media | Mount Darwin',
-    template: '%s | Magen Integrated Services',
+    default: 'Magen Integrated Business Solutions (MIBS) | Commercial Print & Media | Mount Darwin',
+    template: '%s | Magen Integrated Business Solutions (MIBS)',
   },
 
   description:
-    'Magen Integrated Services provides professional commercial printing, digital media, branding, design, and print solutions in Mount Darwin, Zimbabwe. Visit us at Chiramba Complex or contact us on WhatsApp +263 777 923 262.',
+    'Magen Integrated Business Solutions (MIBS) provides commercial printing, DTF apparel transfers, educational syllabus publishing, signage, and environmental consultancy in Mount Darwin, Zimbabwe.',
 
   keywords: [
-    'Magen Integrated Services',
-    'Magen Integrated Services Mount Darwin',
+    'Magen Integrated Business Solutions',
+    'MIBS',
+    'MIBS Mount Darwin',
     'printing services Mount Darwin',
-    'printing company Mount Darwin',
     'commercial printing Mount Darwin',
+    'DTF t-shirt printing Zimbabwe',
+    'school curriculum printing Zimbabwe',
+    'environmental consultancy Mount Darwin',
     'digital media Mount Darwin',
-    'digital media services Zimbabwe',
-    'printing services Zimbabwe',
-    'graphic design Mount Darwin',
     'branding services Mount Darwin',
     'business printing Mount Darwin',
     'flyer printing Mount Darwin',
-    'poster printing Mount Darwin',
-    'brochure printing Mount Darwin',
-    'business cards Mount Darwin',
-    'printing and media services',
-    'Magen Media Hub',
     'Chiramba Complex Mount Darwin',
-    'GraceHarvest Academy Mount Darwin',
   ],
 
   authors: [
     {
-      name: 'Magen Integrated Services',
+      name: 'Magen Integrated Business Solutions (MIBS)',
     },
   ],
 
-  creator: 'Magen Integrated Services',
-  publisher: 'Magen Integrated Services',
+  creator: 'Magen Integrated Business Solutions (MIBS)',
+  publisher: 'Magen Integrated Business Solutions (MIBS)',
 
-  applicationName: 'Magen Integrated Services',
+  applicationName: 'Magen Integrated Business Solutions (MIBS)',
 
   category: 'Business Services',
 

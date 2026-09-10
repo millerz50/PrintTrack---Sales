@@ -15,6 +15,14 @@ import { CompanyInfo, storage } from '@/services/storage';
 import { exportQuotationPDF } from '@/services/pdfGenerator';
 import { MagenLogo } from './MagenLogo';
 import {
+  createQuotationAction,
+  updateQuotationStatusAction,
+  deleteQuotationAction
+} from '@/app/actions/quotations';
+import {
+  createSaleReceiptAction
+} from '@/app/actions/sales';
+import {
   FileText,
   Plus,
   Search,
@@ -243,6 +251,10 @@ export function QuotationManager({
       notes: notes.trim() || undefined,
       terms,
       preparedBy: activeUser.name
+    });
+
+    createQuotationAction(created).catch(err => {
+      console.warn('[QuotationManager] DB create error:', err);
     });
 
     // Reset Form
@@ -520,6 +532,9 @@ export function QuotationManager({
                           onClick={() => {
                             if (confirm(`Delete quotation ${quote.quoteNumber}?`)) {
                               storage.deleteQuotation(quote.id);
+                              deleteQuotationAction(quote.id).catch(err => {
+                                console.warn('[QuotationManager] DB delete error:', err);
+                              });
                             }
                           }}
                           className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"

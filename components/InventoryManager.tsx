@@ -25,6 +25,11 @@ import {
 } from '../types';
 import { CompanyInfo, storage } from '../services/storage';
 import { exportStockReportPDF } from '../services/pdfGenerator';
+import {
+  restockInventoryAction,
+  saveInventoryItemAction,
+  deleteInventoryItemAction
+} from '@/app/actions/inventory';
 
 interface InventoryManagerProps {
   inventory: InventoryItem[];
@@ -117,6 +122,13 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
       activeUser.name
     );
 
+    restockInventoryAction(
+      selectedItemForRestock.id,
+      Number(restockQty),
+      restockNotes || 'Restock via Inventory Manager',
+      activeUser.name
+    ).catch(err => console.warn('[InventoryManager] DB restock error:', err));
+
     setShowRestockModal(false);
     setSelectedItemForRestock(null);
   };
@@ -142,6 +154,8 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
     };
 
     storage.saveInventoryItem(createdItem);
+    saveInventoryItemAction(createdItem).catch(err => console.warn('[InventoryManager] DB save item error:', err));
+
     setShowAddModal(false);
     setNewItem({
       name: '',
@@ -163,6 +177,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
     }
     if (confirm(`Are you sure you want to delete "${name}" from inventory?`)) {
       storage.deleteInventoryItem(id);
+      deleteInventoryItemAction(id).catch(err => console.warn('[InventoryManager] DB delete item error:', err));
     }
   };
 

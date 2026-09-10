@@ -12,6 +12,7 @@ import {
   Save
 } from 'lucide-react';
 import { CompanyInfo, storage } from '../services/storage';
+import { updateCompanyAction } from '@/app/actions/company';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -33,6 +34,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     storage.saveCompanyInfo(form);
+    updateCompanyAction(form).catch(err => {
+      console.warn('[Settings] Failed to save company to DB:', err);
+    });
     onCompanyUpdated(form);
     onClose();
   };

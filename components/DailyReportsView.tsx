@@ -25,6 +25,7 @@ import {
 } from '../types';
 import { CompanyInfo, storage } from '../services/storage';
 import { exportDailySummaryPDF } from '../services/pdfGenerator';
+import { deleteSaleReceiptAction } from '@/app/actions/sales';
 
 interface DailyReportsViewProps {
   sales: SaleReceipt[];
@@ -139,6 +140,7 @@ export const DailyReportsView: React.FC<DailyReportsViewProps> = ({
     }
     if (confirm(`Are you sure you want to void receipt ${receiptNum}? This will remove it from the daily financial tally.`)) {
       storage.deleteSaleReceipt(id);
+      deleteSaleReceiptAction(id).catch(err => console.warn('[DailyReportsView] DB delete receipt error:', err));
     }
   };
 

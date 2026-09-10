@@ -2,9 +2,9 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { storage, CompanyInfo } from '@/services/storage';
-import { getDatabaseStateAction } from '@/app/actions/appData';
+import { getDatabaseStateAction, DatabaseState } from '@/app/actions/appData';
 
 import {
   User,
@@ -17,18 +17,22 @@ import {
   MarketingCampaign
 } from '@/types';
 
-export function useAppData() {
+export function useAppData(initialData?: DatabaseState) {
   const [isMounted, setIsMounted] = useState(false);
 
-  const [activeUser, setActiveUser] = useState<User | null>(null);
-  const [company, setCompany] = useState<CompanyInfo | null>(null);
+  const [activeUser, setActiveUser] = useState<User | null>(
+    initialData?.users?.[0] || null
+  );
+  const [company, setCompany] = useState<CompanyInfo | null>(
+    initialData?.company || null
+  );
 
-  const [sales, setSales] = useState<SaleReceipt[]>([]);
-  const [expenses, setExpenses] = useState<DailyExpense[]>([]);
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
-  const [services, setServices] = useState<ServiceItem[]>([]);
-  const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const [sales, setSales] = useState<SaleReceipt[]>(initialData?.sales || []);
+  const [expenses, setExpenses] = useState<DailyExpense[]>(initialData?.expenses || []);
+  const [inventory, setInventory] = useState<InventoryItem[]>(initialData?.inventory || []);
+  const [stockMovements, setStockMovements] = useState<StockMovement[]>(initialData?.stockMovements || []);
+  const [services, setServices] = useState<ServiceItem[]>(initialData?.services || []);
+  const [quotations, setQuotations] = useState<Quotation[]>(initialData?.quotations || []);
   const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
 
   const [previewReceipt, setPreviewReceipt] =
@@ -39,10 +43,13 @@ export function useAppData() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
-  const [isLoadingDb, setIsLoadingDb] = useState(true);
+  const [isLoadingDb, setIsLoadingDb] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date>(new Date());
+  const initialHydrated = useRef(false);
 
   const fetchFreshDatabaseState = useCallback(async () => {
     try {
+      setIsLoadingDb(true);
       const dbState = await getDatabaseStateAction();
       if (dbState) {
         storage.hydrateFromDatabase(dbState);
@@ -58,6 +65,7 @@ export function useAppData() {
           const matched = dbState.users.find(u => u.id === current.id);
           if (matched) setActiveUser(matched);
         }
+        setLastSyncedAt(new Date());
       }
     } catch (err) {
       console.warn('[useAppData] Server action fetch warning (using local sync fallback):', err);
@@ -68,6 +76,11 @@ export function useAppData() {
 
   useEffect(() => {
     setIsMounted(true);
+
+    if (initialData && !initialHydrated.current) {
+      storage.hydrateFromDatabase(initialData);
+      initialHydrated.current = true;
+    }
 
     const load = () => {
       setActiveUser(storage.getActiveUser());
@@ -87,7 +100,7 @@ export function useAppData() {
     const unsubscribe = storage.subscribe(load);
 
     return unsubscribe;
-  }, [fetchFreshDatabaseState]);
+  }, [fetchFreshDatabaseState, initialData]);
 
   return {
     isMounted,
@@ -117,5 +130,9 @@ export function useAppData() {
 
     isSettingsModalOpen,
     setIsSettingsModalOpen,
+
+    isLoadingDb,
+    lastSyncedAt,
+    refetchDb: fetchFreshDatabaseState,
   };
 }

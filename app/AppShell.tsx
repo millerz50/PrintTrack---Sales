@@ -14,9 +14,14 @@ import { AppNavigation } from '@/components/navigation/AppNavigation';
 import { AppWorkspace } from './AppWorkspace';
 import { AppModals } from './AppModals';
 import { PublicShowcaseWebsite } from '@/components/showcase/PublicShowcaseWebsite';
+import { DatabaseState } from '@/app/actions/appData';
 
-export function AppShell() {
-  const appData = useAppData();
+interface AppShellProps {
+  initialData?: DatabaseState;
+}
+
+export function AppShell({ initialData }: AppShellProps = {}) {
+  const appData = useAppData(initialData);
   const navigation = useAppNavigation();
   const sync = useAppSync();
 
@@ -143,6 +148,9 @@ export function AppShell() {
           activeStaffUser={appData.activeUser}
           onStaffLoginSuccess={handleStaffLoginSuccess}
           onEnterPosDirectly={handleReturnToPos}
+          isLoadingDb={appData.isLoadingDb}
+          lastSyncedAt={appData.lastSyncedAt}
+          onRefreshDb={appData.refetchDb}
         />
       ) : (
         <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col">

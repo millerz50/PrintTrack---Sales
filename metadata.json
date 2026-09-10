@@ -1,6 +1,6 @@
 {
   "name": "PrintTrack - Sales & Inventory Tracker",
-  "description": "Commercial print & media services showcase, client cotation request builder, and teller POS terminal with Magen Integrated Solutions branding, offline sync, and real-time inventory management.",
+  "description": "Commercial print & media services showcase, client cotation request builder, and teller POS terminal for Magen Integrated Business Solutions (MIBS) in Mount Darwin with live SQLite database persistence.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1,7 +1,9 @@
-'use client';
+import { getDatabaseStateAction } from '@/app/actions/appData';
+import { AppShell } from '@/app/AppShell';
 
-import { AppShell } from '@/components/app/AppShell';
+export const dynamic = 'force-dynamic';
 
-export default function HomePage() {
-  return <AppShell />;
+export default async function HomePage() {
+  const initialData = await getDatabaseStateAction();
+  return <AppShell initialData={initialData} />;
 }
