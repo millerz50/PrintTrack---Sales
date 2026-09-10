@@ -12,8 +12,9 @@ import {
   ShieldCheck,
   AlertCircle
 } from 'lucide-react';
-import { DailyExpense, ExpenseCategory, User, DailyFinancialSummary } from '../types';
+import { DailyExpense, ExpenseCategory, User, DailyFinancialSummary, PaymentMethod } from '../types';
 import { CompanyInfo, storage } from '../services/storage';
+import { createExpenseAction, deleteExpenseAction } from '@/app/actions/expenses';
 
 interface DailyCostTrackerProps {
   expenses: DailyExpense[];
@@ -50,7 +51,7 @@ export const DailyCostTracker: React.FC<DailyCostTrackerProps> = ({
   const [category, setCategory] = useState<ExpenseCategory>('Inks & Toners');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState<number | ''>('');
-  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Bank Transfer' | 'Mobile Money' | 'Card'>('Cash');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Cash');
   const [receiptRef, setReceiptRef] = useState('');
   const [expenseDate, setExpenseDate] = useState(selectedDate);
 
@@ -77,7 +78,7 @@ export const DailyCostTracker: React.FC<DailyCostTrackerProps> = ({
       return;
     }
 
-    storage.createExpense({
+    const newExpense = storage.createExpense({
       date: expenseDate,
       category,
       description: description.trim(),
@@ -86,6 +87,10 @@ export const DailyCostTracker: React.FC<DailyCostTrackerProps> = ({
       recordedBy: activeUser.name,
       tellerRole: activeUser.role,
       receiptRef: receiptRef.trim() || undefined
+    });
+
+    createExpenseAction(newExpense).catch(err => {
+      console.warn('[Expenses] DB write fallback:', err);
     });
 
     // Reset form
@@ -97,6 +102,9 @@ export const DailyCostTracker: React.FC<DailyCostTrackerProps> = ({
   const handleDeleteExpense = (id: string) => {
     if (confirm('Are you sure you want to remove this cost entry?')) {
       storage.deleteExpense(id);
+      deleteExpenseAction(id).catch(err => {
+        console.warn('[Expenses] DB delete fallback:', err);
+      });
     }
   };
 
@@ -268,13 +276,12 @@ export const DailyCostTracker: React.FC<DailyCostTrackerProps> = ({
                 </label>
                 <select
                   value={paymentMethod}
-                  onChange={e => setPaymentMethod(e.target.value as any)}
+                  onChange={e => setPaymentMethod(e.target.value as PaymentMethod)}
                   className="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none"
                 >
+                  <option value="USD">USD ($)</option>
+                  <option value="EcoCash">EcoCash</option>
                   <option value="Cash">Cash (Drawer)</option>
-                  <option value="Mobile Money">Mobile Money</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="Card">Card</option>
                 </select>
               </div>
             </div>

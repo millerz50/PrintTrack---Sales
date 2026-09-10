@@ -24,6 +24,8 @@ import {
   Quotation
 } from '../types';
 import { storage, CompanyInfo } from '../services/storage';
+import { createSaleReceiptAction } from '@/app/actions/sales';
+import { createQuotationAction } from '@/app/actions/quotations';
 
 interface POSReceiptEntryProps {
   inventory: InventoryItem[];
@@ -45,10 +47,9 @@ const CATEGORIES: PrintingCategory[] = [
 ];
 
 const PAYMENT_METHODS: PaymentMethod[] = [
-  'Cash',
-  'Mobile Money (M-Pesa)',
-  'Card',
-  'Bank Transfer'
+  'USD',
+  'EcoCash',
+  'Cash'
 ];
 
 export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
@@ -197,6 +198,11 @@ export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
       notes: notes.trim() || undefined
     });
 
+    // Persist directly to SQLite database via Server Action
+    createSaleReceiptAction(newReceipt).catch(err => {
+      console.warn('[POS] Direct DB write fallback:', err);
+    });
+
     // Notify parent to trigger modal
     onReceiptCreated(newReceipt);
 
@@ -256,6 +262,10 @@ export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
       notes: notes.trim() || undefined,
       terms: 'Valid for 14 calendar days from date of issue. 50% deposit required upon order confirmation.',
       preparedBy: activeUser.name
+    });
+
+    createQuotationAction(createdQuotation).catch(err => {
+      console.warn('[POS] Quotation DB save fallback:', err);
     });
 
     if (onQuotationCreated) {
@@ -577,7 +587,7 @@ export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
               <label className="block text-xs font-semibold text-slate-600 mb-2">
                 Payment Method *
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {PAYMENT_METHODS.map(method => (
                   <button
                     key={method}

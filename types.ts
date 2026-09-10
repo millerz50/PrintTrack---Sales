@@ -56,7 +56,7 @@ export interface SaleItem {
   stockDeductionQty?: number; // Units of raw inventory consumed per item
 }
 
-export type PaymentMethod = 'Cash' | 'Card' | 'Mobile Money (M-Pesa)' | 'Bank Transfer';
+export type PaymentMethod = 'USD' | 'EcoCash' | 'Cash';
 
 export interface SaleReceipt {
   id: string;
@@ -135,7 +135,7 @@ export interface DailyExpense {
   category: ExpenseCategory;
   description: string;
   amount: number;
-  paymentMethod: 'Cash' | 'Bank Transfer' | 'Mobile Money' | 'Card';
+  paymentMethod: PaymentMethod;
   recordedBy: string;
   tellerRole: UserRole;
   receiptRef?: string;

@@ -572,7 +572,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             Payment Channel Split & Cash Drawer Velocity
           </h3>
           <p className="text-[11px] text-slate-400 mb-3">
-            Physical Cash in drawer vs Mobile Money (M-Pesa) vs Cards & Bank Transfer
+            USD vs EcoCash vs Cash in drawer
           </p>
 
           <div className="h-64 w-full">

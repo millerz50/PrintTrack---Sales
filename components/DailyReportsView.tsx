@@ -295,10 +295,9 @@ export const DailyReportsView: React.FC<DailyReportsViewProps> = ({
               className="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             >
               <option value="all">All Payment Methods</option>
+              <option value="USD">USD ($)</option>
+              <option value="EcoCash">EcoCash</option>
               <option value="Cash">Cash</option>
-              <option value="Mobile Money (M-Pesa)">Mobile Money (M-Pesa)</option>
-              <option value="Card">Card</option>
-              <option value="Bank Transfer">Bank Transfer</option>
             </select>
 
             {/* View Mode Toggle */}

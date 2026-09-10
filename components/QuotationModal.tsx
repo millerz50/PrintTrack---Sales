@@ -357,10 +357,9 @@ export function QuotationModal({
                     onChange={(e) => setConvertPaymentMethod(e.target.value as PaymentMethod)}
                     className="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white font-medium text-slate-800"
                   >
+                    <option value="USD">USD ($)</option>
+                    <option value="EcoCash">EcoCash</option>
                     <option value="Cash">Cash</option>
-                    <option value="Card">Card</option>
-                    <option value="Mobile Money (M-Pesa)">Mobile Money</option>
-                    <option value="Bank Transfer">Bank Transfer</option>
                   </select>
                   <button
                     onClick={handleConfirmConvert}

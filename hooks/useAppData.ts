@@ -2,8 +2,9 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { storage, CompanyInfo } from '@/services/storage';
+import { getDatabaseStateAction } from '@/app/actions/appData';
 
 import {
   User,
@@ -38,6 +39,33 @@ export function useAppData() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
+  const [isLoadingDb, setIsLoadingDb] = useState(true);
+
+  const fetchFreshDatabaseState = useCallback(async () => {
+    try {
+      const dbState = await getDatabaseStateAction();
+      if (dbState) {
+        storage.hydrateFromDatabase(dbState);
+        if (dbState.company) setCompany(dbState.company);
+        if (dbState.sales) setSales(dbState.sales);
+        if (dbState.expenses) setExpenses(dbState.expenses);
+        if (dbState.inventory) setInventory(dbState.inventory);
+        if (dbState.stockMovements) setStockMovements(dbState.stockMovements);
+        if (dbState.services) setServices(dbState.services);
+        if (dbState.quotations) setQuotations(dbState.quotations);
+        if (dbState.users && dbState.users.length > 0) {
+          const current = storage.getActiveUser();
+          const matched = dbState.users.find(u => u.id === current.id);
+          if (matched) setActiveUser(matched);
+        }
+      }
+    } catch (err) {
+      console.warn('[useAppData] Server action fetch warning (using local sync fallback):', err);
+    } finally {
+      setIsLoadingDb(false);
+    }
+  }, []);
+
   useEffect(() => {
     setIsMounted(true);
 
@@ -54,11 +82,12 @@ export function useAppData() {
     };
 
     load();
+    fetchFreshDatabaseState();
 
     const unsubscribe = storage.subscribe(load);
 
     return unsubscribe;
-  }, []);
+  }, [fetchFreshDatabaseState]);
 
   return {
     isMounted,

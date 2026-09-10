@@ -427,7 +427,7 @@ export function MobileMenu({
                 </p>
               </div>
 
-              <ThemeSwitcher />
+              <ThemeSwitcher inline />
             </div>
           </section>
 

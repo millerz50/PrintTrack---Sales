@@ -6,6 +6,8 @@ import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { useAppSync } from '@/hooks/useAppSync';
 import { storage } from '@/services/storage';
 import { Quotation, PaymentMethod, PortalMode, User } from '@/types';
+import { createSaleReceiptAction } from '@/app/actions/sales';
+import { updateQuotationStatusAction } from '@/app/actions/quotations';
 
 import { AppLoading } from './AppLoading';
 import { AppNavigation } from '@/components/navigation/AppNavigation';
@@ -40,6 +42,8 @@ export function AppShell() {
     if (!appData.activeUser) return;
     const receipt = storage.convertQuotationToReceipt(quotation.id, paymentMethod, appData.activeUser);
     if (receipt) {
+      createSaleReceiptAction(receipt).catch(err => console.warn('[AppShell] Convert receipt DB error:', err));
+      updateQuotationStatusAction(quotation.id, 'Converted', receipt.id).catch(err => console.warn('[AppShell] Quote status DB error:', err));
       appData.setPreviewQuotation(null);
       appData.setPreviewReceipt(receipt);
     }

@@ -1233,6 +1233,44 @@ class StorageService {
     });
   }
 
+  public hydrateFromDatabase(dbState: {
+    users?: User[];
+    company?: CompanyInfo | null;
+    sales?: SaleReceipt[];
+    expenses?: DailyExpense[];
+    inventory?: InventoryItem[];
+    stockMovements?: StockMovement[];
+    services?: import('../types').ServiceItem[];
+    quotations?: Quotation[];
+  }): void {
+    if (typeof window === 'undefined') return;
+    if (dbState.users && dbState.users.length > 0) {
+      localStorage.setItem(KEYS.USERS, JSON.stringify(dbState.users));
+    }
+    if (dbState.company) {
+      localStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(dbState.company));
+    }
+    if (dbState.sales && dbState.sales.length > 0) {
+      localStorage.setItem(KEYS.SALES, JSON.stringify(dbState.sales));
+    }
+    if (dbState.expenses && dbState.expenses.length > 0) {
+      localStorage.setItem(KEYS.EXPENSES, JSON.stringify(dbState.expenses));
+    }
+    if (dbState.inventory && dbState.inventory.length > 0) {
+      localStorage.setItem(KEYS.INVENTORY, JSON.stringify(dbState.inventory));
+    }
+    if (dbState.stockMovements && dbState.stockMovements.length > 0) {
+      localStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(dbState.stockMovements));
+    }
+    if (dbState.services && dbState.services.length > 0) {
+      localStorage.setItem(KEYS.SERVICES, JSON.stringify(dbState.services));
+    }
+    if (dbState.quotations && dbState.quotations.length > 0) {
+      localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(dbState.quotations));
+    }
+    this.notify();
+  }
+
   public resetToFactorySeeds(): void {
     localStorage.setItem(KEYS.INVENTORY, JSON.stringify(INITIAL_INVENTORY));
     localStorage.setItem(KEYS.SALES, JSON.stringify(INITIAL_SALES));
