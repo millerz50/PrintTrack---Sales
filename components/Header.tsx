@@ -24,7 +24,8 @@ import { HeaderBrand } from './HeaderBrand';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import { KpiStrip } from './KpiStrip';
-import { AppNavigation } from '@components/navigation/AppNavigation';
+import { AppNavigation } from './AppNavigation';
+import { MobileMenu } from './MobileMenu';
 
 import { AppTab } from '../hooks/useAppNavigation';
 
@@ -616,3 +617,5 @@ const secondaryButton = `
   dark:text-slate-300
   dark:hover:bg-slate-800
 `;
+
+export { AppHeader as Header };
