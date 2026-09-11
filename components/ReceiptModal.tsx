@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import {
   Printer,
   Download,
@@ -7,7 +8,8 @@ import {
   Phone,
   Calendar,
   User,
-  Scissors
+  Scissors,
+  QrCode as QrIcon
 } from 'lucide-react';
 import { SaleReceipt } from '../types';
 import { CompanyInfo } from '../services/storage';
@@ -28,6 +30,16 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   if (!receipt) return null;
 
   const currency = company.currency || '$';
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+
+  useEffect(() => {
+    if (receipt) {
+      const qrData = `MAGEN MIBS OFFICIAL SALE RECEIPT\nReceipt #: ${receipt.receiptNumber}\nDate: ${receipt.date}\nCustomer: ${receipt.customerName || 'Walk-in Client'}\nTotal: ${currency}${receipt.totalAmount.toFixed(2)}\nPaid via: ${receipt.paymentMethod}\nTeller: ${receipt.tellerName}\nStatus: VERIFIED AUTHENTIC`;
+      QRCode.toDataURL(qrData, { width: 140, margin: 1, color: { dark: '#0C2D64', light: '#FFFFFF' } })
+        .then(url => setQrCodeUrl(url))
+        .catch(err => console.error('Error generating receipt QR Code:', err));
+    }
+  }, [receipt, currency]);
 
   const handlePrint = () => {
     window.print();
@@ -153,6 +165,24 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
               <strong>Notes:</strong> {receipt.notes}
             </div>
           )}
+
+          {/* QR Code Digital Verification */}
+          <div className="flex flex-col items-center justify-center py-2 text-center bg-white rounded-lg border border-slate-200/80 p-2">
+            {qrCodeUrl ? (
+              <img
+                src={qrCodeUrl}
+                alt={`QR Verification ${receipt.receiptNumber}`}
+                className="w-24 h-24 object-contain"
+              />
+            ) : (
+              <div className="w-24 h-24 bg-slate-100 flex items-center justify-center text-slate-400">
+                <QrIcon className="w-8 h-8 animate-pulse text-slate-300" />
+              </div>
+            )}
+            <span className="text-[8px] text-slate-500 mt-1 uppercase tracking-wider font-sans font-semibold">
+              Scan to verify genuine receipt • MIBS Anti-Fraud
+            </span>
+          </div>
 
           <div className="border-t border-dashed border-slate-300 my-2" />
 

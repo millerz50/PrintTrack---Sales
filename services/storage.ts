@@ -12,7 +12,8 @@ import {
   QuotationStatus,
   PaymentMethod,
   MarketingCampaign,
-  ClientLead
+  ClientLead,
+  UserRole
 } from '../types';
 import {
   INITIAL_INVENTORY,
@@ -154,6 +155,7 @@ export interface CompanyInfo {
   currency: string;
   taxRate: number; // percentage, e.g. 0 or 16
   receiptFooter: string;
+  logoUrl?: string;
 }
 
 export const DEFAULT_COMPANY: CompanyInfo = {
@@ -164,7 +166,8 @@ export const DEFAULT_COMPANY: CompanyInfo = {
   address: 'Stand 448, Mount Darwin Commercial Centre / Media & Print Hub',
   currency: '$',
   taxRate: 0,
-  receiptFooter: 'Magen Integrated Business Solutions (MIBS) - Thank you for your business!'
+  receiptFooter: 'Magen Integrated Business Solutions (MIBS) - Thank you for your business!',
+  logoUrl: '/IMG-20260907-WA0015.jpg'
 };
 
 export interface SyncQueueItem {
@@ -260,7 +263,7 @@ class StorageService {
 
   public async createUser(userData: {
     name: string;
-    role: 'admin' | 'teller';
+    role: UserRole;
     pin: string;
     email?: string;
     avatar?: string;
@@ -270,7 +273,7 @@ class StorageService {
       name: userData.name.trim(),
       role: userData.role,
       pin: userData.pin.trim(),
-      avatar: userData.avatar || (userData.role === 'admin' ? '👑' : '🧑‍💼')
+      avatar: userData.avatar || (userData.role === 'admin' ? '👑' : userData.role === 'manager' ? '💼' : '🧑‍💼')
     };
 
     const users = this.getUsers();
@@ -1099,7 +1102,7 @@ class StorageService {
         return true;
       }
     } catch (err) {
-      console.warn('Failed to pull sync from SQLite database:', err);
+      console.warn('Failed to pull sync from server database:', err);
     }
 
     return false;
@@ -1114,10 +1117,10 @@ class StorageService {
     const pullRes = await this.syncFromDatabase();
 
     if (pushRes.success || pullRes) {
-      return { success: true, message: `Sync complete with SQLite database. ${pushRes.count} pending items pushed.` };
+      return { success: true, message: `Sync complete with secure server database. ${pushRes.count} pending items pushed.` };
     }
 
-    return { success: false, message: 'Could not complete sync with SQLite server.' };
+    return { success: false, message: 'Could not complete sync with server.' };
   }
 
   // Financial Summaries Calculation

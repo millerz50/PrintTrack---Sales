@@ -28,6 +28,12 @@ import { AppNavigation } from './AppNavigation';
 import { MobileMenu } from './MobileMenu';
 
 import { AppTab } from '../hooks/useAppNavigation';
+import {
+  getNotificationPermission,
+  requestNotificationPermission,
+  sendBrowserNotification,
+  NotificationPermissionState
+} from '@/lib/notifications';
 
 interface AppHeaderProps {
   activeUser: User;
@@ -90,6 +96,18 @@ export function AppHeader({
   onLockPos,
 }: AppHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notifState, setNotifState] = useState<NotificationPermissionState>(() => getNotificationPermission());
+
+  const handleToggleNotifications = async () => {
+    const perm = await requestNotificationPermission();
+    setNotifState(perm);
+    if (perm === 'granted') {
+      sendBrowserNotification('Magen POS Notifications Active', {
+        body: 'You will receive instant alerts for receipts, quotations, and store activity.',
+        type: 'success'
+      });
+    }
+  };
 
   const closeMenu = () => setMobileMenuOpen(false);
 
@@ -172,9 +190,15 @@ export function AppHeader({
               {/* Theme */}
               <ThemeSwitcher />
 
-              {/* Notifications */}
+              {/* Browser Notifications Bell */}
               <button
                 type="button"
+                onClick={handleToggleNotifications}
+                title={
+                  notifState === 'granted'
+                    ? 'Browser notifications enabled • Click to test'
+                    : 'Click to enable browser notifications'
+                }
                 className="
                   relative
                   flex h-10 w-10
@@ -186,15 +210,22 @@ export function AppHeader({
                   text-slate-600
                   transition
                   hover:bg-slate-100
+                  cursor-pointer
 
                   dark:border-slate-800
                   dark:bg-slate-900
                   dark:text-slate-300
                   dark:hover:bg-slate-800
                 "
-                aria-label="Notifications"
+                aria-label="Browser notifications"
               >
-                <Bell className="h-[18px] w-[18px]" />
+                <Bell className={`h-[18px] w-[18px] ${notifState === 'granted' ? 'text-indigo-600' : ''}`} />
+
+                {notifState === 'granted' ? (
+                  <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
+                ) : (
+                  <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-white dark:ring-slate-900 animate-pulse" />
+                )}
 
                 {unreadChatsCount > 0 && (
                   <span

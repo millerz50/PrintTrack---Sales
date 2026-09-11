@@ -403,14 +403,18 @@ export const DailyCostTracker: React.FC<DailyCostTrackerProps> = ({
                           {currency}{exp.amount.toFixed(2)}
                         </td>
                         <td className="py-3 px-3 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteExpense(exp.id)}
-                            className="p-1 text-slate-400 hover:text-rose-600 rounded transition"
-                            title="Delete Expense Entry"
-                          >
-                            <Trash2 className="w-4 h-4 inline" />
-                          </button>
+                          {activeUser.role === 'admin' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteExpense(exp.id)}
+                              className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                              title="Delete Expense Entry (Admin Only)"
+                            >
+                              <Trash2 className="w-4 h-4 inline" />
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 italic">Protected</span>
+                          )}
                         </td>
                       </tr>
                     ))

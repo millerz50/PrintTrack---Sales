@@ -24,57 +24,38 @@ export function MagenLogo({
   lightText = false,
 }: MagenLogoProps) {
   const s = SIZES[size] || SIZES.md;
+  const [imageFailed, setImageFailed] = React.useState(false);
 
-  // Visual Icon Mark for MIBS
+  // Visual Icon Mark for MIBS using user's uploaded logo
   const Emblem = (
     <div
-      className="relative shrink-0 flex items-center justify-center rounded-xl overflow-hidden shadow-xs"
+      className="relative shrink-0 flex items-center justify-center rounded-xl overflow-hidden shadow-xs bg-white border border-slate-200/80"
       style={{ width: s.icon, height: s.icon }}
     >
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Background Gradient Tile */}
-        <rect width="100" height="100" rx="20" fill="url(#mibsTileGrad)" />
-        
-        <defs>
-          <linearGradient id="mibsTileGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#0A2240" />
-            <stop offset="100%" stopColor="#06152B" />
-          </linearGradient>
-          <linearGradient id="mibsGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#10B981" />
-            <stop offset="100%" stopColor="#059669" />
-          </linearGradient>
-          <linearGradient id="mibsAccentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#38BDF8" />
-            <stop offset="100%" stopColor="#0284C7" />
-          </linearGradient>
-        </defs>
-
-        {/* Outer Accent Rim */}
-        <rect x="2" y="2" width="96" height="96" rx="18" stroke="#10B981" strokeWidth="2.5" strokeOpacity="0.4" fill="none" />
-
-        {/* Modern Geometric 'M' shape in Cyan/White */}
-        <path
-          d="M 22 72 L 22 30 L 34 30 L 50 56 L 66 30 L 78 30 L 78 72 L 67 72 L 67 46 L 54 66 L 46 66 L 33 46 L 33 72 Z"
-          fill="#FFFFFF"
+      {!imageFailed ? (
+        <img
+          src="/IMG-20260907-WA0015.jpg"
+          alt="Magen Logo"
+          className="w-full h-full object-contain p-0.5"
+          onError={() => setImageFailed(true)}
         />
-
-        {/* Eco Leaf & Print Notch (top-right emblem) */}
-        <path
-          d="M 68 18 C 70 12 77 9 84 8 C 83 15 80 22 72 23 Z"
-          fill="url(#mibsGoldGrad)"
-        />
-
-        {/* CMYK Register Dots / Accent */}
-        <circle cx="28" cy="80" r="3" fill="#10B981" />
-        <circle cx="50" cy="80" r="3" fill="#38BDF8" />
-        <circle cx="72" cy="80" r="3" fill="#F59E0B" />
-      </svg>
+      ) : (
+        <svg
+          viewBox="0 0 100 100"
+          className="w-full h-full"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect width="100" height="100" rx="20" fill="#0A2240" />
+          <path
+            d="M 22 72 L 22 30 L 34 30 L 50 56 L 66 30 L 78 30 L 78 72 L 67 72 L 67 46 L 54 66 L 46 66 L 33 46 L 33 72 Z"
+            fill="#FFFFFF"
+          />
+          <circle cx="28" cy="80" r="3" fill="#10B981" />
+          <circle cx="50" cy="80" r="3" fill="#38BDF8" />
+          <circle cx="72" cy="80" r="3" fill="#F59E0B" />
+        </svg>
+      )}
     </div>
   );
 

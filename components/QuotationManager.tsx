@@ -528,20 +528,22 @@ export function QuotationManager({
                           </button>
                         )}
 
-                        <button
-                          onClick={() => {
-                            if (confirm(`Delete quotation ${quote.quoteNumber}?`)) {
-                              storage.deleteQuotation(quote.id);
-                              deleteQuotationAction(quote.id).catch(err => {
-                                console.warn('[QuotationManager] DB delete error:', err);
-                              });
-                            }
-                          }}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {activeUser.role === 'admin' && (
+                          <button
+                            onClick={() => {
+                              if (confirm(`Delete quotation ${quote.quoteNumber}?`)) {
+                                storage.deleteQuotation(quote.id);
+                                deleteQuotationAction(quote.id).catch(err => {
+                                  console.warn('[QuotationManager] DB delete error:', err);
+                                });
+                              }
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="Delete Quotation (Admin Only)"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -37,7 +37,7 @@ export const OfflineSyncBanner: React.FC<OfflineSyncBannerProps> = ({
             </>
           ) : (
             <>
-              <strong>Connection Restored:</strong> {pendingCount} offline transaction(s) ready to sync with the SQLite Database.
+              <strong>Connection Restored:</strong> {pendingCount} offline transaction(s) ready to sync with the enterprise database.
             </>
           )}
         </span>
@@ -51,7 +51,7 @@ export const OfflineSyncBanner: React.FC<OfflineSyncBannerProps> = ({
           className="flex items-center space-x-1.5 px-3 py-1 bg-[#0C2D64] hover:bg-[#081e44] text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
         >
           <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isSyncing ? 'animate-spin' : ''}`} />
-          <span>{isSyncing ? 'Syncing with DB...' : `Sync ${pendingCount} to SQLite`}</span>
+          <span>{isSyncing ? 'Syncing with Server...' : `Sync ${pendingCount} to Server`}</span>
         </button>
       )}
     </div>

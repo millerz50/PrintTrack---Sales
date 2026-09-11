@@ -12,7 +12,8 @@ import {
   Trash2,
   Database,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck
 } from 'lucide-react';
 import { User, UserRole } from '../types';
 import { storage } from '../services/storage';
@@ -157,7 +158,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         if (activeUser.id === editingUserId) {
           onUserChanged(updated);
         }
-        setSuccessMsg(`User "${formName}" updated successfully in SQLite & local storage.`);
+        setSuccessMsg(`User "${formName}" updated successfully in enterprise database & local storage.`);
       } else {
         // Create user
         await storage.createUser({
@@ -216,7 +217,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 User Authentication & Staff Management
               </h3>
               <p className="text-[11px] text-slate-500">
-                SQLite Database Auth • Online & Offline Sync Enabled
+                Secure Enterprise Staff Authentication • Cloud Sync Enabled
               </p>
             </div>
           </div>
@@ -396,8 +397,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-1.5 text-xs text-slate-500">
-                    <Database className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Prisma &amp; SQLite DB Registered Users ({users.length})</span>
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Registered Staff Accounts ({users.length})</span>
                   </div>
                   <button
                     type="button"
@@ -426,6 +427,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                               className={`text-[10px] font-bold px-1.5 py-0.5 rounded capitalize ${
                                 user.role === 'admin'
                                   ? 'bg-amber-100 text-amber-800'
+                                  : user.role === 'manager'
+                                  ? 'bg-emerald-100 text-emerald-800'
                                   : 'bg-blue-100 text-blue-800'
                               }`}
                             >
@@ -507,7 +510,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0C2D64] focus:outline-none"
                     >
                       <option value="teller">Teller / Operator (POS &amp; Quotes)</option>
-                      <option value="admin">Administrator (Full Access &amp; Costs)</option>
+                      <option value="manager">Manager (Reports, Inventory &amp; Costs)</option>
+                      <option value="admin">Administrator (Full CRUD &amp; System Control)</option>
                     </select>
                   </div>
 

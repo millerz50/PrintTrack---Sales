@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import { Quotation, QuotationStatus, PaymentMethod } from '@/types';
 import { CompanyInfo } from '@/services/storage';
 import { exportQuotationPDF } from '@/services/pdfGenerator';
@@ -18,7 +19,8 @@ import {
   Mail,
   MapPin,
   FileCheck,
-  Check
+  Check,
+  QrCode as QrIcon
 } from 'lucide-react';
 
 interface QuotationModalProps {
@@ -36,13 +38,22 @@ export function QuotationModal({
   onConvertToReceipt,
   onUpdateStatus
 }: QuotationModalProps) {
+  const currency = company?.currency || '$';
   const [copied, setCopied] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
   const [convertPaymentMethod, setConvertPaymentMethod] = useState<PaymentMethod>('Cash');
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+
+  useEffect(() => {
+    if (quotation) {
+      const qrData = `MAGEN MIBS OFFICIAL QUOTATION\nQuote #: ${quotation.quoteNumber}\nCustomer: ${quotation.customerName}\nValid Until: ${quotation.validUntil}\nTotal: ${currency}${quotation.totalAmount.toFixed(2)}\nPrepared By: ${quotation.preparedBy}\nStatus: ${quotation.status}\nSecurity Hash: MIBS-AUTH-VALID`;
+      QRCode.toDataURL(qrData, { width: 140, margin: 1, color: { dark: '#0C2D64', light: '#FFFFFF' } })
+        .then(url => setQrCodeUrl(url))
+        .catch(err => console.error('Error generating quotation QR Code:', err));
+    }
+  }, [quotation, currency]);
 
   if (!quotation) return null;
-
-  const currency = company.currency || '$';
 
   const handlePrint = () => {
     window.print();
@@ -303,13 +314,33 @@ export function QuotationModal({
               </div>
             </div>
 
-            {/* Signatures Block */}
-            <div className="pt-6 border-t border-slate-200 grid grid-cols-2 gap-8 text-xs text-slate-500">
+            {/* Signatures & QR Verification Block */}
+            <div className="pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs text-slate-500 items-end">
               <div>
                 <div className="h-10 border-b border-dashed border-slate-300"></div>
                 <div className="pt-1.5 font-bold text-slate-800">Authorized Signatory &amp; Stamp</div>
                 <div className="text-[11px] text-slate-500">Magen Integrated Solutions</div>
               </div>
+
+              {/* QR Verification Tile */}
+              <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-50 border border-slate-200">
+                {qrCodeUrl ? (
+                  <img
+                    src={qrCodeUrl}
+                    alt={`Quotation QR ${quotation.quoteNumber}`}
+                    className="w-20 h-20 object-contain rounded bg-white p-1 border border-slate-200"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-slate-100 flex items-center justify-center">
+                    <QrIcon className="w-6 h-6 text-slate-400" />
+                  </div>
+                )}
+                <span className="text-[9px] text-[#0C2D64] font-bold mt-1 tracking-tight uppercase">
+                  Verify Quotation
+                </span>
+                <span className="text-[8px] text-slate-400">Authentic Digital Seal</span>
+              </div>
+
               <div>
                 <div className="h-10 border-b border-dashed border-slate-300"></div>
                 <div className="pt-1.5 font-bold text-slate-800">Client Acceptance Signature</div>

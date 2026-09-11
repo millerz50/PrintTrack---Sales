@@ -221,16 +221,16 @@ export function PublicShowcaseWebsite({
             {/* Database Live Verification Badge */}
             <div
               className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-800/80 border border-slate-700 text-[11px] text-slate-300"
-              title="State is hydrated directly from the SQLite database via Prisma Server Actions"
+              title="State is hydrated directly from the secure enterprise database"
             >
-              <Database className="w-3 h-3 text-emerald-400" />
-              <span>SQLite DB Live ({activeServices.length} Services)</span>
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              <span>Enterprise Sync ({activeServices.length} Services)</span>
               {onRefreshDb && (
                 <button
                   onClick={handleManualRefresh}
                   disabled={isRefreshing || isLoadingDb}
                   className="hover:text-emerald-400 transition-colors ml-1 p-0.5"
-                  title="Force re-query SQLite database"
+                  title="Force re-sync with server database"
                 >
                   <RefreshCw
                     className={`w-3 h-3 ${isRefreshing || isLoadingDb ? 'animate-spin text-emerald-400' : ''}`}
@@ -1072,7 +1072,7 @@ export function PublicShowcaseWebsite({
           <div className="flex items-center gap-4 text-[11px]">
             <span className="text-slate-500">Mount Darwin Commercial Centre</span>
             <span className="text-slate-700">&bull;</span>
-            <span className="text-emerald-400 font-mono">SQLite DB Synced</span>
+            <span className="text-emerald-400 font-medium">Enterprise Cloud Synced</span>
             <span className="text-slate-700">&bull;</span>
             <button
               onClick={() => (activeStaffUser && onEnterPosDirectly ? onEnterPosDirectly() : setIsStaffLoginOpen(true))}

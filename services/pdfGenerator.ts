@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import QRCode from 'qrcode';
 import { SaleReceipt, DailyExpense, InventoryItem, DailyFinancialSummary, Quotation } from '../types';
 import { CompanyInfo } from './storage';
 
@@ -286,15 +287,15 @@ export const exportStockReportPDF = (
   doc.save(`Stock_Depletion_Report_${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
-export const exportReceiptPDF = (
+export const exportReceiptPDF = async (
   receipt: SaleReceipt,
   company: CompanyInfo
 ) => {
-  // Standard 80mm thermal receipt or compact format
+  // Standard 80mm thermal receipt format
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
-    format: [80, 210]
+    format: [80, 230]
   });
 
   const currency = company.currency || '$';
@@ -412,7 +413,21 @@ export const exportReceiptPDF = (
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(56, 142, 60); // Green
   doc.text(`✓ Paid in Full via ${receipt.paymentMethod}`, 5, currentY);
-  currentY += 6;
+  currentY += 5;
+
+  // Anti-fraud Verification QR Code
+  try {
+    const qrPayload = `MAGEN MIBS OFFICIAL RECEIPT\nReceipt: ${receipt.receiptNumber}\nDate: ${receipt.date}\nCustomer: ${receipt.customerName || 'Walk-in'}\nTotal: ${currency}${receipt.totalAmount.toFixed(2)}\nPaid via: ${receipt.paymentMethod}\nStatus: VERIFIED`;
+    const qrDataUrl = await QRCode.toDataURL(qrPayload, { width: 120, margin: 0, color: { dark: '#0C2D64', light: '#FFFFFF' } });
+    doc.addImage(qrDataUrl, 'PNG', 31, currentY, 18, 18);
+    currentY += 19;
+    doc.setFontSize(5.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Scan to verify authentic receipt', 40, currentY, { align: 'center' });
+    currentY += 4;
+  } catch (err) {
+    console.warn('Receipt QR PDF generation error:', err);
+  }
 
   // Footer & Disclaimer
   doc.setFontSize(6.5);
@@ -426,7 +441,7 @@ export const exportReceiptPDF = (
   doc.save(`Receipt_${receipt.receiptNumber}.pdf`);
 };
 
-export const exportQuotationPDF = (
+export const exportQuotationPDF = async (
   quotation: Quotation,
   company: CompanyInfo
 ) => {
@@ -629,20 +644,33 @@ export const exportQuotationPDF = (
 
   // --- SIGNATURES & ACCEPTANCE ---
   doc.setDrawColor(180, 195, 215);
-  doc.line(14, currentY + 14, 85, currentY + 14);
-  doc.line(125, currentY + 14, 196, currentY + 14);
+  doc.line(14, currentY + 14, 75, currentY + 14);
+  doc.line(135, currentY + 14, 196, currentY + 14);
+
+  // Digital Verification QR Code
+  try {
+    const qrPayload = `MAGEN MIBS OFFICIAL QUOTATION\nQuote: ${quotation.quoteNumber}\nCustomer: ${quotation.customerName}\nValid: ${quotation.validUntil}\nTotal: ${currency}${quotation.totalAmount.toFixed(2)}\nPreparedBy: ${quotation.preparedBy}\nSecurity: MIBS-VERIFIED`;
+    const qrDataUrl = await QRCode.toDataURL(qrPayload, { width: 130, margin: 0, color: { dark: '#0C2D64', light: '#FFFFFF' } });
+    doc.addImage(qrDataUrl, 'PNG', 93, currentY - 5, 24, 24);
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(12, 45, 100);
+    doc.text('OFFICIAL QR VERIFICATION', 105, currentY + 22, { align: 'center' });
+  } catch (err) {
+    console.warn('Quotation QR PDF error:', err);
+  }
 
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(12, 45, 100);
-  doc.text('Authorized Signatory & Official Stamp', 14, currentY + 19);
-  doc.text('Client Acceptance Signature & Date', 125, currentY + 19);
+  doc.text('Authorized Signatory & Stamp', 14, currentY + 19);
+  doc.text('Client Acceptance Signature & Date', 135, currentY + 19);
 
   doc.setFontSize(6.8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 116, 139);
   doc.text('Magen Integrated Solutions Management', 14, currentY + 23);
-  doc.text('I confirm acceptance of the quoted scope & terms above', 125, currentY + 23);
+  doc.text('I confirm acceptance of quoted terms above', 135, currentY + 23);
 
   // Footer bar
   doc.setFillColor(12, 45, 100);

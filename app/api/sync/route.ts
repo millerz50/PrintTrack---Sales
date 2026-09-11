@@ -41,7 +41,7 @@ export async function GET() {
   } catch (error: any) {
     console.error('Sync GET error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to pull data from SQLite' },
+      { success: false, error: error.message || 'Failed to retrieve database records' },
       { status: 500 }
     );
   }
@@ -226,7 +226,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('Sync POST error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to sync to SQLite' },
+      { success: false, error: error.message || 'Failed to synchronize database records' },
       { status: 500 }
     );
   }

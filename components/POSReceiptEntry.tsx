@@ -26,6 +26,7 @@ import {
 import { storage, CompanyInfo } from '../services/storage';
 import { createSaleReceiptAction } from '@/app/actions/sales';
 import { createQuotationAction } from '@/app/actions/quotations';
+import { sendBrowserNotification, requestNotificationPermission } from '@/lib/notifications';
 
 interface POSReceiptEntryProps {
   inventory: InventoryItem[];
@@ -199,9 +200,15 @@ export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
       notes: notes.trim() || undefined
     });
 
-    // Persist directly to SQLite database via Server Action
+    // Persist directly to database via Server Action
     createSaleReceiptAction(newReceipt).catch(err => {
       console.warn('[POS] Direct DB write fallback:', err);
+    });
+
+    // Send Browser Notification
+    sendBrowserNotification(`Receipt Issued: ${newReceipt.receiptNumber}`, {
+      body: `${newReceipt.customerName || 'Walk-in Client'} • ${currency}${totalAmount.toFixed(2)} (${paymentMethod})`,
+      type: 'success'
     });
 
     // Notify parent to trigger modal
@@ -267,6 +274,12 @@ export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
 
     createQuotationAction(createdQuotation).catch(err => {
       console.warn('[POS] Quotation DB save fallback:', err);
+    });
+
+    // Send Browser Notification
+    sendBrowserNotification(`Quotation Generated: ${createdQuotation.quoteNumber}`, {
+      body: `Quotation for ${createdQuotation.customerName} • ${currency}${totalAmount.toFixed(2)}`,
+      type: 'info'
     });
 
     if (onQuotationCreated) {

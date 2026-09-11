@@ -9,6 +9,13 @@ export const INITIAL_USERS: User[] = [
     avatar: '👑'
   },
   {
+    id: 'usr_manager',
+    name: 'Michael (Operations Manager)',
+    role: 'manager',
+    pin: '2222',
+    avatar: '💼'
+  },
+  {
     id: 'usr_teller1',
     name: 'David (Teller / Front Desk)',
     role: 'teller',

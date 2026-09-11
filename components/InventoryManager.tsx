@@ -457,20 +457,24 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                           )}
                         </td>
                         <td className="py-3 px-3 text-center space-x-1.5 whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenRestock(item)}
-                            className="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded transition"
-                            title="Add Stock / Restock"
-                          >
-                            + Restock
-                          </button>
+                          {(activeUser.role === 'admin' || activeUser.role === 'manager') ? (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRestock(item)}
+                              className="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded transition"
+                              title="Add Stock / Restock"
+                            >
+                              + Restock
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 font-medium italic">Read-only</span>
+                          )}
                           {activeUser.role === 'admin' && (
                             <button
                               type="button"
                               onClick={() => handleDeleteItem(item.id, item.name)}
                               className="p-1 text-slate-400 hover:text-rose-600 rounded transition"
-                              title="Delete Item"
+                              title="Delete Item (Admin Only)"
                             >
                               <Trash2 className="w-3.5 h-3.5 inline" />
                             </button>
