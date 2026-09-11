@@ -4,6 +4,11 @@ import { AppShell } from '@/app/AppShell';
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const initialData = await getDatabaseStateAction();
-  return <AppShell initialData={initialData} />;
+  let initialData;
+  try {
+    initialData = await getDatabaseStateAction();
+  } catch (err) {
+    console.warn('[HomePage] Server action error while fetching initial DB state, falling back to client cache:', err);
+  }
+  return <AppShell initialData={initialData || undefined} />;
 }

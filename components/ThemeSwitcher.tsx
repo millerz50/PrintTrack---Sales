@@ -22,7 +22,12 @@ export function ThemeSwitcher({ inline = false, className = '' }: ThemeSwitcherP
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const saved = (localStorage.getItem('magen-theme') as Theme) || 'system';
+    let saved: Theme = 'system';
+    try {
+      saved = (localStorage.getItem('magen-theme') as Theme) || 'system';
+    } catch {
+      // ignore restricted storage
+    }
     setTheme(saved);
     applyTheme(saved);
 
@@ -43,7 +48,11 @@ export function ThemeSwitcher({ inline = false, className = '' }: ThemeSwitcherP
 
   function changeTheme(value: Theme) {
     setTheme(value);
-    localStorage.setItem('magen-theme', value);
+    try {
+      localStorage.setItem('magen-theme', value);
+    } catch {
+      // ignore restricted storage
+    }
     applyTheme(value);
     setIsOpen(false);
   }

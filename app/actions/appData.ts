@@ -213,6 +213,6 @@ export async function getDatabaseStateAction(): Promise<DatabaseState> {
     };
   } catch (err) {
     console.error('[DatabaseStateAction] Error fetching database state:', err);
-    throw err;
+    return null as any;
   }
 }

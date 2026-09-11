@@ -31,11 +31,15 @@ export function AppShell({ initialData }: AppShellProps = {}) {
 
   // Initialize staff session check on mount
   useEffect(() => {
-    const savedMode = localStorage.getItem('magen_portal_view');
-    const activeStaff = storage.getActiveUser();
-    if (savedMode === 'staff_pos' && activeStaff) {
-      setPortalMode('staff_pos');
-      setStaffUnlocked(true);
+    try {
+      const savedMode = localStorage.getItem('magen_portal_view');
+      const activeStaff = storage.getActiveUser();
+      if (savedMode === 'staff_pos' && activeStaff) {
+        setPortalMode('staff_pos');
+        setStaffUnlocked(true);
+      }
+    } catch {
+      // ignore storage errors
     }
   }, []);
 
@@ -58,24 +62,40 @@ export function AppShell({ initialData }: AppShellProps = {}) {
     appData.setActiveUser(user);
     setStaffUnlocked(true);
     setPortalMode('staff_pos');
-    localStorage.setItem('magen_portal_view', 'staff_pos');
+    try {
+      localStorage.setItem('magen_portal_view', 'staff_pos');
+    } catch {
+      // ignore
+    }
   };
 
   const handleLockPos = () => {
     setStaffUnlocked(false);
     setPortalMode('public_website');
-    localStorage.setItem('magen_portal_view', 'public_website');
+    try {
+      localStorage.setItem('magen_portal_view', 'public_website');
+    } catch {
+      // ignore
+    }
   };
 
   const handleViewWebsite = () => {
     setPortalMode('public_website');
-    localStorage.setItem('magen_portal_view', 'public_website');
+    try {
+      localStorage.setItem('magen_portal_view', 'public_website');
+    } catch {
+      // ignore
+    }
   };
 
   const handleReturnToPos = () => {
     setStaffUnlocked(true);
     setPortalMode('staff_pos');
-    localStorage.setItem('magen_portal_view', 'staff_pos');
+    try {
+      localStorage.setItem('magen_portal_view', 'staff_pos');
+    } catch {
+      // ignore
+    }
   };
 
   return (

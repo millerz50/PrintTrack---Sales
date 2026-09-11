@@ -25,6 +25,40 @@ import {
   INITIAL_QUOTATIONS
 } from '../data/initialData';
 
+
+const memoryStore = new Map<string, string>();
+
+const safeStorage = {
+  getItem: (key: string): string | null => {
+    if (typeof window === 'undefined') {
+      return memoryStore.get(key) || null;
+    }
+    try {
+      return window.localStorage.getItem(key) ?? memoryStore.get(key) ?? null;
+    } catch {
+      return memoryStore.get(key) || null;
+    }
+  },
+  setItem: (key: string, value: string): void => {
+    memoryStore.set(key, value);
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(key, value);
+    } catch {
+      // restricted iframe or quota error handled gracefully
+    }
+  },
+  removeItem: (key: string): void => {
+    memoryStore.delete(key);
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // ignore
+    }
+  }
+};
+
 const KEYS = {
   INVENTORY: 'print_track_inventory_v1',
   SALES: 'print_track_sales_v1',
@@ -190,7 +224,7 @@ class StorageService {
 
   // Company Info
   public getCompanyInfo(): CompanyInfo {
-    const data = localStorage.getItem(KEYS.COMPANY_INFO);
+    const data = safeStorage.getItem(KEYS.COMPANY_INFO);
     if (!data) {
       this.saveCompanyInfo(DEFAULT_COMPANY);
       return DEFAULT_COMPANY;
@@ -209,16 +243,16 @@ class StorageService {
   }
 
   public saveCompanyInfo(info: CompanyInfo): void {
-    localStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(info));
+    safeStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(info));
     this.notify();
   }
 
   // Users & Auth (CRUD)
   public getUsers(): User[] {
-    const data = localStorage.getItem(KEYS.USERS);
+    const data = safeStorage.getItem(KEYS.USERS);
     if (!data) {
-      localStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
-      localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
+      safeStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
+      safeStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
       return INITIAL_USERS;
     }
     return JSON.parse(data);
@@ -241,7 +275,7 @@ class StorageService {
 
     const users = this.getUsers();
     users.push(newUser);
-    localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+    safeStorage.setItem(KEYS.USERS, JSON.stringify(users));
     this.notify();
 
     if (this.isOnline) {
@@ -263,7 +297,7 @@ class StorageService {
     const index = users.findIndex(u => u.id === user.id);
     if (index >= 0) {
       users[index] = { ...user };
-      localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+      safeStorage.setItem(KEYS.USERS, JSON.stringify(users));
 
       const active = this.getActiveUser();
       if (active.id === user.id) {
@@ -299,7 +333,7 @@ class StorageService {
     }
 
     const updated = users.filter(u => u.id !== id);
-    localStorage.setItem(KEYS.USERS, JSON.stringify(updated));
+    safeStorage.setItem(KEYS.USERS, JSON.stringify(updated));
 
     const active = this.getActiveUser();
     if (active.id === id && updated.length > 0) {
@@ -350,25 +384,25 @@ class StorageService {
   }
 
   public getActiveUser(): User {
-    const data = localStorage.getItem(KEYS.ACTIVE_USER);
+    const data = safeStorage.getItem(KEYS.ACTIVE_USER);
     if (data) {
       return JSON.parse(data);
     }
     const defaultUser = this.getUsers()[0]; // Default Sarah Admin
-    localStorage.setItem(KEYS.ACTIVE_USER, JSON.stringify(defaultUser));
+    safeStorage.setItem(KEYS.ACTIVE_USER, JSON.stringify(defaultUser));
     return defaultUser;
   }
 
   public setActiveUser(user: User): void {
-    localStorage.setItem(KEYS.ACTIVE_USER, JSON.stringify(user));
+    safeStorage.setItem(KEYS.ACTIVE_USER, JSON.stringify(user));
     this.notify();
   }
 
   // Services & Pricing
   public getServices(): import('../types').ServiceItem[] {
-    const data = localStorage.getItem(KEYS.SERVICES);
+    const data = safeStorage.getItem(KEYS.SERVICES);
     if (!data) {
-      localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
+      safeStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
       return INITIAL_SERVICES;
     }
     return JSON.parse(data);
@@ -379,13 +413,13 @@ class StorageService {
     const index = list.findIndex(s => s.id === service.id);
     if (index >= 0) list[index] = service;
     else list.push(service);
-    localStorage.setItem(KEYS.SERVICES, JSON.stringify(list));
+    safeStorage.setItem(KEYS.SERVICES, JSON.stringify(list));
     this.notify();
   }
 
   public deleteService(id: string): void {
     const list = this.getServices().filter(s => s.id !== id);
-    localStorage.setItem(KEYS.SERVICES, JSON.stringify(list));
+    safeStorage.setItem(KEYS.SERVICES, JSON.stringify(list));
     this.notify();
   }
 
@@ -394,15 +428,15 @@ class StorageService {
     const service = list.find(s => s.id === id);
     if (!service) return;
     service.active = !service.active;
-    localStorage.setItem(KEYS.SERVICES, JSON.stringify(list));
+    safeStorage.setItem(KEYS.SERVICES, JSON.stringify(list));
     this.notify();
   }
 
   // Inventory
   public getInventory(): InventoryItem[] {
-    const data = localStorage.getItem(KEYS.INVENTORY);
+    const data = safeStorage.getItem(KEYS.INVENTORY);
     if (!data) {
-      localStorage.setItem(KEYS.INVENTORY, JSON.stringify(INITIAL_INVENTORY));
+      safeStorage.setItem(KEYS.INVENTORY, JSON.stringify(INITIAL_INVENTORY));
       return INITIAL_INVENTORY;
     }
     return JSON.parse(data);
@@ -416,7 +450,7 @@ class StorageService {
     } else {
       list.push(item);
     }
-    localStorage.setItem(KEYS.INVENTORY, JSON.stringify(list));
+    safeStorage.setItem(KEYS.INVENTORY, JSON.stringify(list));
     this.enqueueSync({
       id: `sync_inv_${Date.now()}`,
       type: 'inventory_update',
@@ -430,7 +464,7 @@ class StorageService {
 
   public deleteInventoryItem(id: string): void {
     const list = this.getInventory().filter(i => i.id !== id);
-    localStorage.setItem(KEYS.INVENTORY, JSON.stringify(list));
+    safeStorage.setItem(KEYS.INVENTORY, JSON.stringify(list));
     this.notify();
   }
 
@@ -445,7 +479,7 @@ class StorageService {
     }
     item.lastRestocked = new Date().toISOString().split('T')[0];
 
-    localStorage.setItem(KEYS.INVENTORY, JSON.stringify(list));
+    safeStorage.setItem(KEYS.INVENTORY, JSON.stringify(list));
 
     // Record Stock Movement
     const movement: StockMovement = {
@@ -474,9 +508,9 @@ class StorageService {
 
   // Stock Movements
   public getStockMovements(): StockMovement[] {
-    const data = localStorage.getItem(KEYS.MOVEMENTS);
+    const data = safeStorage.getItem(KEYS.MOVEMENTS);
     if (!data) {
-      localStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(INITIAL_STOCK_MOVEMENTS));
+      safeStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(INITIAL_STOCK_MOVEMENTS));
       return INITIAL_STOCK_MOVEMENTS;
     }
     return JSON.parse(data);
@@ -485,15 +519,15 @@ class StorageService {
   public addStockMovement(movement: StockMovement): void {
     const list = this.getStockMovements();
     list.unshift(movement);
-    localStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(list));
+    safeStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(list));
     this.notify();
   }
 
   // Sales Receipts
   public getSales(): SaleReceipt[] {
-    const data = localStorage.getItem(KEYS.SALES);
+    const data = safeStorage.getItem(KEYS.SALES);
     if (!data) {
-      localStorage.setItem(KEYS.SALES, JSON.stringify(INITIAL_SALES));
+      safeStorage.setItem(KEYS.SALES, JSON.stringify(INITIAL_SALES));
       return INITIAL_SALES;
     }
     return JSON.parse(data);
@@ -544,13 +578,13 @@ class StorageService {
     });
 
     if (inventoryModified) {
-      localStorage.setItem(KEYS.INVENTORY, JSON.stringify(inventory));
-      localStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(movements));
+      safeStorage.setItem(KEYS.INVENTORY, JSON.stringify(inventory));
+      safeStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(movements));
     }
 
     const sales = this.getSales();
     sales.unshift(newReceipt);
-    localStorage.setItem(KEYS.SALES, JSON.stringify(sales));
+    safeStorage.setItem(KEYS.SALES, JSON.stringify(sales));
 
     this.enqueueSync({
       id: `sync_sale_${newReceipt.id}`,
@@ -567,15 +601,15 @@ class StorageService {
 
   public deleteSaleReceipt(id: string): void {
     const sales = this.getSales().filter(s => s.id !== id);
-    localStorage.setItem(KEYS.SALES, JSON.stringify(sales));
+    safeStorage.setItem(KEYS.SALES, JSON.stringify(sales));
     this.notify();
   }
 
   // Quotations / Price Estimates
   public getQuotations(): Quotation[] {
-    const data = localStorage.getItem(KEYS.QUOTATIONS);
+    const data = safeStorage.getItem(KEYS.QUOTATIONS);
     if (!data) {
-      localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(INITIAL_QUOTATIONS));
+      safeStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(INITIAL_QUOTATIONS));
       return INITIAL_QUOTATIONS;
     }
     try {
@@ -604,7 +638,7 @@ class StorageService {
           id: quote.id
         };
         quotes[idx] = updated;
-        localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+        safeStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
         this.notify();
         return updated;
       }
@@ -616,7 +650,7 @@ class StorageService {
       createdAt: new Date().toISOString()
     };
     quotes.unshift(newQuote);
-    localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+    safeStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
     this.notify();
     return newQuote;
   }
@@ -665,7 +699,7 @@ class StorageService {
 
     const quotes = this.getQuotations();
     quotes.unshift(newQuote);
-    localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+    safeStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
     this.notify();
     return newQuote;
   }
@@ -675,14 +709,14 @@ class StorageService {
     const quote = quotes.find(q => q.id === id);
     if (quote) {
       quote.status = status;
-      localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+      safeStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
       this.notify();
     }
   }
 
   public deleteQuotation(id: string): void {
     const quotes = this.getQuotations().filter(q => q.id !== id);
-    localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+    safeStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
     this.notify();
   }
 
@@ -721,7 +755,7 @@ class StorageService {
 
     quote.status = 'Converted';
     quote.convertedReceiptId = receipt.id;
-    localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
+    safeStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(quotes));
     this.notify();
 
     return receipt;
@@ -729,9 +763,9 @@ class StorageService {
 
   // Marketing Campaigns & Specials
   public getMarketingCampaigns(): MarketingCampaign[] {
-    const data = localStorage.getItem(KEYS.CAMPAIGNS);
+    const data = safeStorage.getItem(KEYS.CAMPAIGNS);
     if (!data) {
-      localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(INITIAL_CAMPAIGNS));
+      safeStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(INITIAL_CAMPAIGNS));
       return INITIAL_CAMPAIGNS;
     }
     return JSON.parse(data);
@@ -748,7 +782,7 @@ class StorageService {
           id: campaign.id
         };
         campaigns[idx] = updated;
-        localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
+        safeStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
         this.notify();
         return updated;
       }
@@ -773,7 +807,7 @@ class StorageService {
     };
 
     campaigns.unshift(newCampaign);
-    localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
+    safeStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
     this.notify();
     return newCampaign;
   }
@@ -783,14 +817,14 @@ class StorageService {
     const item = campaigns.find(c => c.id === id);
     if (item) {
       item.active = !item.active;
-      localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
+      safeStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
       this.notify();
     }
   }
 
   public deleteMarketingCampaign(id: string): void {
     const campaigns = this.getMarketingCampaigns().filter(c => c.id !== id);
-    localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
+    safeStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(campaigns));
     this.notify();
   }
 
@@ -914,9 +948,9 @@ class StorageService {
 
   // Daily Expenses
   public getExpenses(): DailyExpense[] {
-    const data = localStorage.getItem(KEYS.EXPENSES);
+    const data = safeStorage.getItem(KEYS.EXPENSES);
     if (!data) {
-      localStorage.setItem(KEYS.EXPENSES, JSON.stringify(INITIAL_EXPENSES));
+      safeStorage.setItem(KEYS.EXPENSES, JSON.stringify(INITIAL_EXPENSES));
       return INITIAL_EXPENSES;
     }
     return JSON.parse(data);
@@ -932,7 +966,7 @@ class StorageService {
 
     const expenses = this.getExpenses();
     expenses.unshift(newExpense);
-    localStorage.setItem(KEYS.EXPENSES, JSON.stringify(expenses));
+    safeStorage.setItem(KEYS.EXPENSES, JSON.stringify(expenses));
 
     this.enqueueSync({
       id: `sync_exp_${newExpense.id}`,
@@ -949,13 +983,13 @@ class StorageService {
 
   public deleteExpense(id: string): void {
     const expenses = this.getExpenses().filter(e => e.id !== id);
-    localStorage.setItem(KEYS.EXPENSES, JSON.stringify(expenses));
+    safeStorage.setItem(KEYS.EXPENSES, JSON.stringify(expenses));
     this.notify();
   }
 
   // Sync Queue management
   public getSyncQueue(): SyncQueueItem[] {
-    const data = localStorage.getItem(KEYS.SYNC_QUEUE);
+    const data = safeStorage.getItem(KEYS.SYNC_QUEUE);
     return data ? JSON.parse(data) : [];
   }
 
@@ -966,7 +1000,7 @@ class StorageService {
   private enqueueSync(item: SyncQueueItem): void {
     const queue = this.getSyncQueue();
     queue.push(item);
-    localStorage.setItem(KEYS.SYNC_QUEUE, JSON.stringify(queue));
+    safeStorage.setItem(KEYS.SYNC_QUEUE, JSON.stringify(queue));
     if (this.isOnline) {
       this.processSyncQueue();
     }
@@ -992,11 +1026,11 @@ class StorageService {
       });
 
       if (response.ok) {
-        localStorage.setItem(KEYS.SYNC_QUEUE, JSON.stringify([]));
+        safeStorage.setItem(KEYS.SYNC_QUEUE, JSON.stringify([]));
         const sales = this.getSales().map(s => ({ ...s, synced: true }));
         const expenses = this.getExpenses().map(e => ({ ...e, synced: true }));
-        localStorage.setItem(KEYS.SALES, JSON.stringify(sales));
-        localStorage.setItem(KEYS.EXPENSES, JSON.stringify(expenses));
+        safeStorage.setItem(KEYS.SALES, JSON.stringify(sales));
+        safeStorage.setItem(KEYS.EXPENSES, JSON.stringify(expenses));
         this.lastSyncTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         this.notify();
         return { success: true, count: pending.length };
@@ -1020,10 +1054,10 @@ class StorageService {
         const { users, company, sales, quotations, inventory, services, expenses } = result.data;
 
         if (users && users.length > 0) {
-          localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+          safeStorage.setItem(KEYS.USERS, JSON.stringify(users));
         }
         if (company) {
-          localStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(company));
+          safeStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(company));
         }
 
         // Merge remote sales into local if missing
@@ -1038,7 +1072,7 @@ class StorageService {
               });
             }
           }
-          localStorage.setItem(KEYS.SALES, JSON.stringify(localSales));
+          safeStorage.setItem(KEYS.SALES, JSON.stringify(localSales));
         }
 
         // Merge remote quotations into local if missing
@@ -1057,7 +1091,7 @@ class StorageService {
               }
             }
           }
-          localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(localQuotes));
+          safeStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(localQuotes));
         }
 
         this.lastSyncTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1188,11 +1222,11 @@ class StorageService {
 
   // Chats & Team Communication / AI Advisor
   public getChatMessages(channel?: ChatChannel): ChatMessage[] {
-    const data = localStorage.getItem(KEYS.CHATS);
+    const data = safeStorage.getItem(KEYS.CHATS);
     let messages: ChatMessage[] = [];
     if (!data) {
       messages = INITIAL_CHATS;
-      localStorage.setItem(KEYS.CHATS, JSON.stringify(INITIAL_CHATS));
+      safeStorage.setItem(KEYS.CHATS, JSON.stringify(INITIAL_CHATS));
     } else {
       try {
         messages = JSON.parse(data);
@@ -1214,7 +1248,7 @@ class StorageService {
       timestamp: new Date().toISOString()
     };
     all.push(newMsg);
-    localStorage.setItem(KEYS.CHATS, JSON.stringify(all));
+    safeStorage.setItem(KEYS.CHATS, JSON.stringify(all));
     this.notify();
     return newMsg;
   }
@@ -1245,43 +1279,43 @@ class StorageService {
   }): void {
     if (typeof window === 'undefined') return;
     if (dbState.users && dbState.users.length > 0) {
-      localStorage.setItem(KEYS.USERS, JSON.stringify(dbState.users));
+      safeStorage.setItem(KEYS.USERS, JSON.stringify(dbState.users));
     }
     if (dbState.company) {
-      localStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(dbState.company));
+      safeStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(dbState.company));
     }
     if (dbState.sales && dbState.sales.length > 0) {
-      localStorage.setItem(KEYS.SALES, JSON.stringify(dbState.sales));
+      safeStorage.setItem(KEYS.SALES, JSON.stringify(dbState.sales));
     }
     if (dbState.expenses && dbState.expenses.length > 0) {
-      localStorage.setItem(KEYS.EXPENSES, JSON.stringify(dbState.expenses));
+      safeStorage.setItem(KEYS.EXPENSES, JSON.stringify(dbState.expenses));
     }
     if (dbState.inventory && dbState.inventory.length > 0) {
-      localStorage.setItem(KEYS.INVENTORY, JSON.stringify(dbState.inventory));
+      safeStorage.setItem(KEYS.INVENTORY, JSON.stringify(dbState.inventory));
     }
     if (dbState.stockMovements && dbState.stockMovements.length > 0) {
-      localStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(dbState.stockMovements));
+      safeStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(dbState.stockMovements));
     }
     if (dbState.services && dbState.services.length > 0) {
-      localStorage.setItem(KEYS.SERVICES, JSON.stringify(dbState.services));
+      safeStorage.setItem(KEYS.SERVICES, JSON.stringify(dbState.services));
     }
     if (dbState.quotations && dbState.quotations.length > 0) {
-      localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(dbState.quotations));
+      safeStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(dbState.quotations));
     }
     this.notify();
   }
 
   public resetToFactorySeeds(): void {
-    localStorage.setItem(KEYS.INVENTORY, JSON.stringify(INITIAL_INVENTORY));
-    localStorage.setItem(KEYS.SALES, JSON.stringify(INITIAL_SALES));
-    localStorage.setItem(KEYS.EXPENSES, JSON.stringify(INITIAL_EXPENSES));
-    localStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(INITIAL_STOCK_MOVEMENTS));
-    localStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
-    localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
-    localStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(DEFAULT_COMPANY));
-    localStorage.setItem(KEYS.CHATS, JSON.stringify(INITIAL_CHATS));
-    localStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(INITIAL_QUOTATIONS));
-    localStorage.setItem(KEYS.SYNC_QUEUE, JSON.stringify([]));
+    safeStorage.setItem(KEYS.INVENTORY, JSON.stringify(INITIAL_INVENTORY));
+    safeStorage.setItem(KEYS.SALES, JSON.stringify(INITIAL_SALES));
+    safeStorage.setItem(KEYS.EXPENSES, JSON.stringify(INITIAL_EXPENSES));
+    safeStorage.setItem(KEYS.MOVEMENTS, JSON.stringify(INITIAL_STOCK_MOVEMENTS));
+    safeStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
+    safeStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
+    safeStorage.setItem(KEYS.COMPANY_INFO, JSON.stringify(DEFAULT_COMPANY));
+    safeStorage.setItem(KEYS.CHATS, JSON.stringify(INITIAL_CHATS));
+    safeStorage.setItem(KEYS.QUOTATIONS, JSON.stringify(INITIAL_QUOTATIONS));
+    safeStorage.setItem(KEYS.SYNC_QUEUE, JSON.stringify([]));
     this.notify();
   }
 }

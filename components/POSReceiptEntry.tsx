@@ -75,6 +75,7 @@ export const POSReceiptEntry: React.FC<POSReceiptEntryProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Cash');
   const [discount, setDiscount] = useState<number>(0);
   const [notes, setNotes] = useState('');
+  const [formNotice, setFormNotice] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
 
   // Items in current receipt
   const [items, setItems] = useState<SaleItem[]>([
