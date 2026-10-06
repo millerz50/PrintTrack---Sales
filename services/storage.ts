@@ -161,12 +161,12 @@ export interface CompanyInfo {
 export const DEFAULT_COMPANY: CompanyInfo = {
   name: 'Magen Integrated Business Solutions (MIBS)',
   tagline: 'MIBS Media & Print Solutions | Integrated Business & Environmental Consultancy',
-  phone: '+263 77 123 4567 / +263 71 987 6543',
-  email: 'orders@mibs.co.zw',
-  address: 'Stand 448, Mount Darwin Commercial Centre / Media & Print Hub',
+  phone: '+263 77 792 3262',
+  email: 'magenmediahub@gmail.com',
+  address: 'Chiramba Complex / Stand 448, Mount Darwin Commercial Centre, Zimbabwe',
   currency: '$',
   taxRate: 0,
-  receiptFooter: 'Magen Integrated Business Solutions (MIBS) - Thank you for your business!',
+  receiptFooter: 'Magen Integrated Business Solutions (MIBS) - Chiramba Complex, Mount Darwin. WhatsApp: +263 77 792 3262',
   logoUrl: '/IMG-20260907-WA0015.jpg'
 };
 

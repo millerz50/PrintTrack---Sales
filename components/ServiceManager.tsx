@@ -13,7 +13,7 @@ interface ServiceManagerProps {
 
 const CATEGORIES: PrintingCategory[] = [
   'T-Shirt Printing', 'Paper Printing', 'Book Printing', 'Banners & Signage',
-  'Merchandise & Branding', 'Photocopy & Lamination', 'Other Services'
+  'Merchandise & Branding', 'Photocopy & Lamination', 'Graphic Design & Branding', 'Other Services'
 ];
 
 const EMPTY: ServiceItem = {

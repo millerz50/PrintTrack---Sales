@@ -43,6 +43,7 @@ import { ClientCotationModal } from './ClientCotationModal';
 import { StaffLoginModal } from './StaffLoginModal';
 import { PWAInstallButton } from '@/components/pwa/PWAInstallButton';
 import { CustomerInquirySection } from './CustomerInquirySection';
+import { DesignStudioSection } from './DesignStudioSection';
 
 interface PublicShowcaseWebsiteProps {
   company: CompanyInfo;
@@ -86,6 +87,11 @@ const CATEGORY_MAP: Record<string, { label: string; icon: React.ReactNode; desc:
     label: 'Duplication & Laminating',
     icon: <Printer className="w-4 h-4" />,
     desc: 'High-speed document runs, pouch lamination up to A3 & plastic binding'
+  },
+  'Graphic Design & Branding': {
+    label: 'Creative & Logo Design',
+    icon: <Sparkles className="w-4 h-4" />,
+    desc: 'Professional logo design, vector branding, flyer layouts, book typesetting & DTF apparel artwork'
   },
   'Other Services': {
     label: 'Consultancy & Other',
@@ -199,7 +205,7 @@ export function PublicShowcaseWebsite({
   };
 
   const whatsappPhone =
-    company.phone?.split('/')[0]?.replace(/[^0-9]/g, '') || '263771234567';
+    company.phone?.split('/')[0]?.replace(/[^0-9]/g, '') || '263777923262';
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
@@ -232,11 +238,11 @@ export function PublicShowcaseWebsite({
             <span className="text-slate-600 hidden md:inline">&bull;</span>
 
             <a
-              href={`tel:${company.phone?.split('/')[0]?.trim() || '+263771234567'}`}
+              href={`tel:${company.phone?.split('/')[0]?.trim() || '+263777923262'}`}
               className="flex items-center gap-1.5 text-white hover:text-emerald-400 transition-colors font-medium text-[11px]"
             >
               <Phone className="w-3 h-3 text-emerald-400" />
-              <span>{company.phone?.split('/')[0]?.trim() || '+263 77 123 4567'}</span>
+              <span>{company.phone?.split('/')[0]?.trim() || '+263 77 792 3262'}</span>
             </a>
           </div>
         </div>
@@ -254,6 +260,9 @@ export function PublicShowcaseWebsite({
           <nav className="hidden lg:flex items-center space-x-7 text-xs font-bold text-slate-700">
             <a href="#catalogue" className="hover:text-emerald-600 transition-colors">
               Live Services
+            </a>
+            <a href="#designs" className="text-indigo-600 font-bold hover:text-indigo-700 transition-colors">
+              Design Studio
             </a>
             <a href="#estimator" className="hover:text-emerald-600 transition-colors">
               Cost Estimator
@@ -356,6 +365,14 @@ export function PublicShowcaseWebsite({
                 >
                   <Layers className="w-4 h-4 text-emerald-600" />
                   <span>Browse Live Catalogue ({activeServices.length})</span>
+                </a>
+
+                <a
+                  href="#designs"
+                  className="px-4 py-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold text-sm border border-indigo-200 transition-colors flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4 text-indigo-600" />
+                  <span>Logo &amp; Design Studio</span>
                 </a>
 
                 <a
@@ -696,6 +713,29 @@ export function PublicShowcaseWebsite({
           )}
         </div>
       </section>
+
+      {/* 5.5. CREATIVE GRAPHIC DESIGN, LOGO DESIGN & VECTOR BRANDING */}
+      <DesignStudioSection
+        company={company}
+        onAddToQuote={(item) => {
+          handleAddToCotation(
+            {
+              id: `dsg_${Date.now()}`,
+              code: 'DSG-CUST',
+              name: item.description,
+              category: item.category,
+              unit: item.unit,
+              price: item.unitPrice,
+              active: true,
+              notes: item.notes
+            },
+            item.quantity
+          );
+        }}
+        onDesignRequested={() => {
+          if (onRefreshDb) onRefreshDb();
+        }}
+      />
 
       {/* 6. SEASONAL & INSTITUTIONAL PACKAGES */}
       <section id="packages" className="py-14 bg-white border-b border-slate-200">

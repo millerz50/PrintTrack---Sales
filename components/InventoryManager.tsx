@@ -45,6 +45,7 @@ const CATEGORIES: PrintingCategory[] = [
   'Banners & Signage',
   'Merchandise & Branding',
   'Photocopy & Lamination',
+  'Graphic Design & Branding',
   'Other Services'
 ];
 

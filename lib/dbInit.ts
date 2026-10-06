@@ -51,7 +51,7 @@ export async function ensureDatabaseInitialized() {
       });
     }
 
-    // 3. Seed Services if empty
+    // 3. Seed Services and ensure new categories (e.g. Graphic Design & Branding) exist in DB
     const serviceCount = await prisma.serviceItem.count();
     if (serviceCount === 0) {
       for (const s of INITIAL_SERVICES) {
@@ -68,6 +68,26 @@ export async function ensureDatabaseInitialized() {
             inventoryItemId: s.inventoryItemId || null
           }
         });
+      }
+    } else {
+      // Ensure any newly added services (such as Logo Design and Graphic Design items) are present
+      for (const s of INITIAL_SERVICES) {
+        const existing = await prisma.serviceItem.findUnique({ where: { id: s.id } });
+        if (!existing) {
+          await prisma.serviceItem.create({
+            data: {
+              id: s.id,
+              code: s.code,
+              name: s.name,
+              category: s.category,
+              unit: s.unit,
+              price: s.price,
+              active: s.active,
+              notes: s.notes || null,
+              inventoryItemId: s.inventoryItemId || null
+            }
+          });
+        }
       }
     }
 

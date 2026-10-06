@@ -68,7 +68,7 @@ export async function getDatabaseStateAction(): Promise<DatabaseState> {
     const users: User[] = dbUsers.map(u => ({
       id: u.id,
       name: u.name,
-      role: (u.role as 'admin' | 'teller'),
+      role: (u.role as any),
       pin: u.pin,
       email: u.email || undefined,
       avatar: u.avatar || undefined,

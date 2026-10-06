@@ -185,7 +185,7 @@ export function ClientCotationModal({
   };
 
   const generateWhatsAppUrl = (quote: Quotation) => {
-    const targetPhone = company.phone?.split('/')[0]?.replace(/[^0-9]/g, '') || '263771234567';
+    const targetPhone = company.phone?.split('/')[0]?.replace(/[^0-9]/g, '') || '263777923262';
     const lines = [
       `*NEW COTATION / QUOTATION REQUEST*`,
       `*Reference:* ${quote.quoteNumber}`,

@@ -3,7 +3,7 @@ import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
-const siteUrl = 'https://your-domain.com';
+const siteUrl = 'https://www.mibs.co.zw';
 
 export const viewport: Viewport = {
   themeColor: '#0f172a',
