@@ -15,6 +15,8 @@ import { AppNavigation } from '@/components/navigation/AppNavigation';
 import { AppWorkspace } from '@/app/AppWorkspace';
 import { AppModals } from '@/app/AppModals';
 import { StaffLockScreen } from './StaffLockScreen';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
+import { Bell, Sparkles } from 'lucide-react';
 
 interface PosTerminalShellProps {
   initialData?: DatabaseState;
@@ -26,6 +28,14 @@ export function PosTerminalShell({ initialData }: PosTerminalShellProps = {}) {
   const sync = useAppSync();
 
   const [staffUnlocked, setStaffUnlocked] = useState<boolean>(false);
+
+  // Real-time synchronization bus (WebSockets / SSE)
+  const { liveAlert, isConnected: isRealtimeConnected } = useRealtimeSync({
+    onRefresh: () => {
+      appData.refetchDb();
+    },
+    enableChime: true
+  });
 
   // Check existing session authentication on mount
   useEffect(() => {
@@ -92,6 +102,25 @@ export function PosTerminalShell({ initialData }: PosTerminalShellProps = {}) {
   // If unlocked, render the comprehensive POS & Workshop Terminal
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans">
+      {/* Real-Time Live Notification Toast Bar */}
+      {liveAlert && (
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2.5 text-xs font-bold shadow-md sticky top-0 z-50 animate-in slide-in-from-top duration-200">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping shrink-0" />
+              <span>{liveAlert}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigation.setActiveTab('quotations')}
+              className="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0"
+            >
+              Open Quotations &rarr;
+            </button>
+          </div>
+        </div>
+      )}
+
       <AppNavigation
         activeUser={appData.activeUser || storage.getActiveUser()}
         company={appData.company}

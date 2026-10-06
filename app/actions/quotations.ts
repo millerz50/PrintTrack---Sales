@@ -4,6 +4,7 @@
 import { prisma } from '@/lib/prisma';
 import { Quotation, QuotationStatus } from '@/types';
 import { revalidatePath } from 'next/cache';
+import { broadcastEvent } from '@/lib/events';
 
 export async function createQuotationAction(quotation: Quotation): Promise<{ success: boolean; data?: Quotation; error?: string }> {
   try {
@@ -44,6 +45,8 @@ export async function createQuotationAction(quotation: Quotation): Promise<{ suc
     });
 
     revalidatePath('/');
+    revalidatePath('/pos');
+    broadcastEvent('quotation:created', quotation);
     return { success: true, data: quotation };
   } catch (error: any) {
     console.error('[createQuotationAction] Error:', error);

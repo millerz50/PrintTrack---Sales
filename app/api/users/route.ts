@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     const newUser = await prisma.user.create({
       data: {
         name: name.trim(),
-        role: role === 'admin' ? 'admin' : 'teller',
+        role: role === 'admin' ? 'admin' : role === 'manager' ? 'manager' : 'teller',
         pin: pin.trim(),
         email: email ? email.trim() : null,
         avatar: avatar || (role === 'admin' ? '👑' : '🧑‍💼'),
@@ -97,7 +97,7 @@ export async function PUT(req: NextRequest) {
       where: { id },
       data: {
         ...(name !== undefined ? { name: name.trim() } : {}),
-        ...(role !== undefined ? { role: role === 'admin' ? 'admin' : 'teller' } : {}),
+        ...(role !== undefined ? { role: role === 'admin' ? 'admin' : role === 'manager' ? 'manager' : 'teller' } : {}),
         ...(pin !== undefined ? { pin: pin.trim() } : {}),
         ...(email !== undefined ? { email: email.trim() || null } : {}),
         ...(avatar !== undefined ? { avatar } : {}),

@@ -17,9 +17,10 @@ export type AppTab =
   | 'chats'
   | 'campaigns'
   | 'clients'
-  | 'ai_marketing';
+  | 'ai_marketing'
+  | 'actors';
 
-export const POS_TABS: AppTab[] = ['pos', 'reports', 'costs', 'inventory', 'services', 'chats'];
+export const POS_TABS: AppTab[] = ['pos', 'reports', 'costs', 'inventory', 'services', 'actors', 'chats'];
 export const MARKETING_TABS: AppTab[] = ['quotations', 'campaigns', 'clients', 'ai_marketing', 'analytics'];
 
 export function useAppNavigation() {

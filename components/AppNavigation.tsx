@@ -57,6 +57,7 @@ export function AppNavigation({
       badgeColor: 'bg-rose-500 text-white',
     },
     { id: 'services', label: 'Services', icon: Layers },
+    { id: 'actors', label: 'Staff Actors (CRUD)', icon: Users },
     {
       id: 'chats',
       label: 'Workshop Chat',

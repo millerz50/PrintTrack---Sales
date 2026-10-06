@@ -4,6 +4,7 @@
 import { prisma } from '@/lib/prisma';
 import { SaleReceipt } from '@/types';
 import { revalidatePath } from 'next/cache';
+import { broadcastEvent } from '@/lib/events';
 
 export async function createSaleReceiptAction(receipt: SaleReceipt): Promise<{ success: boolean; data?: SaleReceipt; error?: string }> {
   try {
@@ -79,6 +80,8 @@ export async function createSaleReceiptAction(receipt: SaleReceipt): Promise<{ s
     }
 
     revalidatePath('/');
+    revalidatePath('/pos');
+    broadcastEvent('sale:created', receipt);
     return { success: true, data: receipt };
   } catch (error: any) {
     console.error('[createSaleReceiptAction] Error:', error);

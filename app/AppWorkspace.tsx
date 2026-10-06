@@ -25,6 +25,7 @@ import { ChatHub } from '@/components/ChatHub';
 import { MarketingCampaigns } from '@/components/marketing/MarketingCampaigns';
 import { ClientLeadsCRM } from '@/components/marketing/ClientLeadsCRM';
 import { AiMarketingHub } from '@/components/marketing/AiMarketingHub';
+import { ActorsManager } from '@/components/ActorsManager';
 
 export interface AppWorkspaceProps {
   activeTab: AppTab;
@@ -171,6 +172,13 @@ export function AppWorkspace({
 
       {activeTab === 'ai_marketing' && (
         <AiMarketingHub
+          company={company}
+          activeUser={activeUser}
+        />
+      )}
+
+      {activeTab === 'actors' && (
+        <ActorsManager
           company={company}
           activeUser={activeUser}
         />

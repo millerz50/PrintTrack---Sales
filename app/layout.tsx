@@ -1,12 +1,29 @@
 
 import React from 'react';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 const siteUrl = 'https://your-domain.com';
 
+export const viewport: Viewport = {
+  themeColor: '#0f172a',
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Magen POS',
+  },
+
+  icons: {
+    icon: '/icon.svg',
+    apple: '/apple-touch-icon.png',
+  },
 
   title: {
     default: 'PrintTrack - Sales & Inventory Tracker',

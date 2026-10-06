@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="mibsNavyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F3574" />
+      <stop offset="100%" stop-color="#081E44" />
+    </linearGradient>
+    <linearGradient id="mibsGreenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="mibsAmberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <filter id="mibsShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <!-- Transparent Background -->
+  <rect width="600" height="600" fill="transparent" />
+
+  <g transform="translate(0, 15)">
+    <!-- Print & Media Icon Mark (Top Left) -->
+    <g transform="translate(230, 75) scale(0.95)">
+      <!-- CMYK / Paper Sheets -->
+      <rect x="2" y="10" width="44" height="24" rx="4" fill="url(#mibsNavyGrad)" />
+      <rect x="10" y="24" width="28" height="14" rx="2" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+      <line x1="14" y1="28" x2="34" y2="28" stroke="#0F3574" stroke-width="2" stroke-linecap="round" />
+      <line x1="14" y1="32" x2="30" y2="32" stroke="#10B981" stroke-width="2" stroke-linecap="round" />
+      <circle cx="40" cy="18" r="2" fill="#10B981" />
+    </g>
+
+    <!-- Eco Leaf & Consultancy Growth Emblem (Top Right) -->
+    <g transform="translate(325, 60) scale(1.05)">
+      <path d="M 0 55 C 6 22 28 4 52 0 C 49 32 36 54 8 58 Z" fill="url(#mibsGreenGrad)" />
+      <path d="M 9 52 Q 24 30 48 4" stroke="#FFFFFF" stroke-width="1.8" fill="none" opacity="0.75" />
+    </g>
+
+    <!-- Central MIBS Monogram Icon -->
+    <g transform="translate(70, 120)">
+      <!-- Outer Shield / Container -->
+      <rect x="30" y="20" width="400" height="220" rx="24" fill="#0C2D64" opacity="0.04" />
+
+      <!-- MIBS Monogram Emblem -->
+      <!-- 'M' -->
+      <path d="M 60 210 L 60 50 L 100 50 L 135 135 L 170 50 L 210 50 L 210 210 L 175 210 L 175 105 L 145 180 L 125 180 L 95 105 L 95 210 Z" fill="url(#mibsNavyGrad)" />
+      
+      <!-- 'I' with Green Leaf Dot -->
+      <path d="M 230 75 L 265 75 L 265 210 L 230 210 Z" fill="url(#mibsGreenGrad)" />
+      <circle cx="247.5" cy="55" r="14" fill="url(#mibsGreenGrad)" />
+
+      <!-- 'B' -->
+      <path d="M 285 50 L 335 50 C 358 50 375 62 375 82 C 375 96 365 108 350 115 C 370 122 382 135 382 155 C 382 185 358 210 325 210 L 285 210 Z M 320 85 L 320 112 L 332 112 C 342 112 348 105 348 98 C 348 90 342 85 332 85 Z M 320 145 L 320 175 L 336 175 C 348 175 354 168 354 160 C 354 152 348 145 336 145 Z" fill="url(#mibsNavyGrad)" />
+
+      <!-- 'S' -->
+      <path d="M 405 70 C 418 55 435 48 458 48 C 488 48 505 65 505 92 C 505 118 488 132 455 140 C 432 146 422 154 422 165 C 422 176 432 184 450 184 C 465 184 480 175 492 162 L 512 185 C 495 204 472 215 448 215 C 418 215 395 198 395 168 C 395 142 415 125 445 118 C 468 112 478 105 478 95 C 478 85 470 78 455 78 C 440 78 428 85 418 95 Z" fill="url(#mibsGreenGrad)" />
+    </g>
+
+    <!-- Separator Line with MAGEN -->
+    <g transform="translate(50, 395)">
+      <!-- Left decorative line -->
+      <line x1="10" y1="0" x2="105" y2="0" stroke="#0F3574" stroke-width="4" stroke-linecap="round" />
+      <circle cx="118" cy="0" r="3.5" fill="#10B981" />
+      
+      <!-- MAGEN Text -->
+      <text x="250" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="900" letter-spacing="12" fill="#0F3574" text-anchor="middle">MAGEN</text>
+      
+      <!-- Right decorative line -->
+      <circle cx="382" cy="0" r="3.5" fill="#10B981" />
+      <line x1="395" y1="0" x2="490" y2="0" stroke="#0F3574" stroke-width="4" stroke-linecap="round" />
+    </g>
+
+    <!-- INTEGRATED BUSINESS SOLUTIONS (MIBS) -->
+    <text x="300" y="455" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#0F3574" text-anchor="middle">
+      INTEGRATED BUSINESS SOLUTIONS
+    </text>
+
+    <!-- MIBS Badge Subtext -->
+    <g transform="translate(300, 492)">
+      <rect x="-65" y="-16" width="130" height="26" rx="13" fill="#10B981" />
+      <text x="0" y="2" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="900" letter-spacing="3" fill="#FFFFFF" text-anchor="middle">MIBS</text>
+    </g>
+
+    <!-- Tagline: Media & Print • Mount Darwin Hub -->
+    <g transform="translate(300, 540)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" letter-spacing="1" text-anchor="middle">
+        <tspan fill="#0F3574">COMMERCIAL MEDIA &amp; PRINT</tspan>
+        <tspan fill="#10B981" font-weight="900"> • </tspan>
+        <tspan fill="#059669">MOUNT DARWIN HUB</tspan>
+      </text>
+    </g>
+  </g>
+</svg>

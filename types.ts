@@ -6,6 +6,8 @@ export interface User {
   role: UserRole;
   pin: string;
   avatar?: string;
+  email?: string;
+  active?: boolean;
 }
 
 export type PrintingCategory =

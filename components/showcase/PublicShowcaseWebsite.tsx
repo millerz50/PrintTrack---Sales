@@ -41,6 +41,8 @@ import { CompanyInfo } from '@/services/storage';
 import { MagenLogo } from '@/components/MagenLogo';
 import { ClientCotationModal } from './ClientCotationModal';
 import { StaffLoginModal } from './StaffLoginModal';
+import { PWAInstallButton } from '@/components/pwa/PWAInstallButton';
+import { CustomerInquirySection } from './CustomerInquirySection';
 
 interface PublicShowcaseWebsiteProps {
   company: CompanyInfo;
@@ -262,13 +264,19 @@ export function PublicShowcaseWebsite({
             <a href="#guarantees" className="hover:text-emerald-600 transition-colors">
               Why MIBS
             </a>
+            <a href="#inquiry" className="text-emerald-600 font-bold hover:text-emerald-700 transition-colors">
+              Online Cotation Form
+            </a>
             <a href="#location" className="hover:text-emerald-600 transition-colors">
               Contact &amp; Hours
             </a>
           </nav>
 
           {/* Action Area */}
-          <div className="flex items-center space-x-2.5 sm:space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-2.5">
+            {/* PWA / App Install Button */}
+            <PWAInstallButton variant="header" />
+
             {/* Request a Cotation Button */}
             <button
               id="header-request-cotation-btn"
@@ -940,6 +948,15 @@ export function PublicShowcaseWebsite({
           </div>
         </div>
       </section>
+
+      {/* 8.5. DIRECT CUSTOMER SPECIFICATION & QUOTE INQUIRY SECTION (With PWA Download) */}
+      <CustomerInquirySection
+        company={company}
+        services={activeServices}
+        onQuoteRequested={() => {
+          if (onRefreshDb) onRefreshDb();
+        }}
+      />
 
       {/* 9. LOCATION & WORKSHOP HOURS */}
       <section id="location" className="py-14 bg-slate-900 text-white">
