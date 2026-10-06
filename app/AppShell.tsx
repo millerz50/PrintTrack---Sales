@@ -61,105 +61,35 @@ export function AppShell({ initialData }: AppShellProps = {}) {
   const handleStaffLoginSuccess = (user: User) => {
     appData.setActiveUser(user);
     setStaffUnlocked(true);
-    setPortalMode('staff_pos');
     try {
-      localStorage.setItem('magen_portal_view', 'staff_pos');
+      sessionStorage.setItem('magen_staff_pos_unlocked', 'true');
     } catch {
       // ignore
     }
+    // Route directly to the dedicated POS terminal
+    window.location.href = '/pos';
   };
 
   const handleLockPos = () => {
     setStaffUnlocked(false);
-    setPortalMode('public_website');
     try {
-      localStorage.setItem('magen_portal_view', 'public_website');
+      sessionStorage.removeItem('magen_staff_pos_unlocked');
     } catch {
       // ignore
     }
+    setPortalMode('public_website');
   };
 
   const handleViewWebsite = () => {
-    setPortalMode('public_website');
-    try {
-      localStorage.setItem('magen_portal_view', 'public_website');
-    } catch {
-      // ignore
-    }
+    window.location.href = '/';
   };
 
   const handleReturnToPos = () => {
-    setStaffUnlocked(true);
-    setPortalMode('staff_pos');
-    try {
-      localStorage.setItem('magen_portal_view', 'staff_pos');
-    } catch {
-      // ignore
-    }
+    window.location.href = '/pos';
   };
 
   return (
     <>
-      {/* Top Application Mode Bar */}
-      <div className="bg-slate-950 text-white px-4 py-2 text-xs border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 sticky top-0 z-50 shadow-md">
-        <div className="flex items-center space-x-2.5">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mode:</span>
-          <div className="inline-flex rounded-lg bg-slate-900 p-1 border border-slate-800">
-            <button
-              id="switch-to-showcase-btn"
-              onClick={handleViewWebsite}
-              className={`px-3 py-1 rounded-md text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer ${
-                portalMode === 'public_website'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <span>🌐</span>
-              <span>Public Showcase Website</span>
-            </button>
-            <button
-              id="switch-to-pos-btn"
-              onClick={handleReturnToPos}
-              className={`px-3 py-1 rounded-md text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer ${
-                portalMode === 'staff_pos'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <span>💼</span>
-              <span>POS &amp; Workshop Backoffice</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3 text-xs">
-          <div className="flex items-center space-x-1.5 text-slate-300">
-            <span className="text-base">{appData.activeUser.avatar || '👑'}</span>
-            <span className="font-semibold text-slate-200">{appData.activeUser.name}</span>
-            <span className="text-[10px] bg-slate-800 text-emerald-400 border border-slate-700 px-1.5 py-0.5 rounded capitalize">
-              {appData.activeUser.role}
-            </span>
-          </div>
-
-          {portalMode === 'public_website' ? (
-            <button
-              onClick={handleReturnToPos}
-              className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs transition flex items-center space-x-1 cursor-pointer shadow-xs"
-            >
-              <span>Launch POS Workspace</span>
-              <span>&rarr;</span>
-            </button>
-          ) : (
-            <button
-              onClick={handleViewWebsite}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium rounded-lg text-xs transition cursor-pointer"
-            >
-              Preview Public Site
-            </button>
-          )}
-        </div>
-      </div>
-
       {portalMode === 'public_website' ? (
         <PublicShowcaseWebsite
           company={appData.company}

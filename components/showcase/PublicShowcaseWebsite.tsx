@@ -218,25 +218,13 @@ export function PublicShowcaseWebsite({
 
           {/* Right: Database live sync indicator & Phone */}
           <div className="flex items-center gap-3">
-            {/* Database Live Verification Badge */}
+            {/* Customer Trust Badge */}
             <div
               className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-800/80 border border-slate-700 text-[11px] text-slate-300"
-              title="State is hydrated directly from the secure enterprise database"
+              title="Verified commercial print & business solutions in Mount Darwin"
             >
               <ShieldCheck className="w-3 h-3 text-emerald-400" />
-              <span>Enterprise Sync ({activeServices.length} Services)</span>
-              {onRefreshDb && (
-                <button
-                  onClick={handleManualRefresh}
-                  disabled={isRefreshing || isLoadingDb}
-                  className="hover:text-emerald-400 transition-colors ml-1 p-0.5"
-                  title="Force re-sync with server database"
-                >
-                  <RefreshCw
-                    className={`w-3 h-3 ${isRefreshing || isLoadingDb ? 'animate-spin text-emerald-400' : ''}`}
-                  />
-                </button>
-              )}
+              <span>Verified Commercial Hub &bull; {activeServices.length} Active Services</span>
             </div>
 
             <span className="text-slate-600 hidden md:inline">&bull;</span>

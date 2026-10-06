@@ -9,12 +9,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
   title: {
-    default: 'Magen Integrated Business Solutions (MIBS) | Commercial Print & Media | Mount Darwin',
-    template: '%s | Magen Integrated Business Solutions (MIBS)',
+    default: 'PrintTrack - Sales & Inventory Tracker',
+    template: '%s | PrintTrack - Sales & Inventory Tracker',
   },
 
   description:
-    'Magen Integrated Business Solutions (MIBS) provides commercial printing, DTF apparel transfers, educational syllabus publishing, signage, and environmental consultancy in Mount Darwin, Zimbabwe.',
+    'Commercial print & media services showcase, client cotation request builder, and teller POS terminal for Magen Integrated Business Solutions (MIBS) in Mount Darwin with live SQLite database persistence.',
 
   keywords: [
     'Magen Integrated Business Solutions',
@@ -65,17 +65,17 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_ZW',
     url: siteUrl,
-    siteName: 'Magen Integrated Services',
-    title: 'Magen Integrated Services | Printing & Digital Media',
+    siteName: 'PrintTrack - Sales & Inventory Tracker',
+    title: 'PrintTrack - Sales & Inventory Tracker',
     description:
-      'Professional printing, digital media, branding and design services in Mount Darwin, Zimbabwe. Find us at Chiramba Complex.',
+      'Commercial print & media services showcase, client cotation request builder, and teller POS terminal for Magen Integrated Business Solutions (MIBS) in Mount Darwin with live SQLite database persistence.',
   },
 
   twitter: {
     card: 'summary_large_image',
-    title: 'Magen Integrated Services | Mount Darwin',
+    title: 'PrintTrack - Sales & Inventory Tracker',
     description:
-      'Professional commercial printing, digital media, branding and design services in Mount Darwin, Zimbabwe.',
+      'Commercial print & media services showcase, client cotation request builder, and teller POS terminal for Magen Integrated Business Solutions (MIBS) in Mount Darwin with live SQLite database persistence.',
   },
 
   other: {
