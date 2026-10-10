@@ -65,9 +65,12 @@ export function PosTerminalShell({ initialData }: PosTerminalShellProps = {}) {
   };
 
   const handleLockPos = () => {
+    storage.lockPos();
+    appData.setActiveUser(null);
     setStaffUnlocked(false);
     try {
       sessionStorage.removeItem('magen_staff_pos_unlocked');
+      localStorage.removeItem('magen_portal_view');
     } catch {
       // ignore
     }

@@ -34,7 +34,8 @@ import {
   Star,
   Users,
   Building2,
-  Calendar
+  Calendar,
+  Lock
 } from 'lucide-react';
 import { ServiceItem, PrintingCategory, QuotationItem, MarketingCampaign, User } from '@/types';
 import { CompanyInfo } from '@/services/storage';
@@ -316,10 +317,10 @@ export function PublicShowcaseWebsite({
               <button
                 id="header-staff-login-btn"
                 onClick={() => setIsStaffLoginOpen(true)}
-                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center gap-1.5 cursor-pointer border border-slate-200"
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs rounded-xl transition flex items-center gap-1.5 cursor-pointer border border-slate-300 shadow-2xs"
               >
-                <Users className="w-3.5 h-3.5 text-slate-500" />
-                <span className="hidden sm:inline">Staff Terminal</span>
+                <Lock className="w-3.5 h-3.5 text-slate-600" />
+                <span className="hidden sm:inline">Staff Login</span>
               </button>
             )}
           </div>

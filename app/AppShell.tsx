@@ -32,18 +32,21 @@ export function AppShell({ initialData }: AppShellProps = {}) {
   // Initialize staff session check on mount
   useEffect(() => {
     try {
-      const savedMode = localStorage.getItem('magen_portal_view');
+      const isUnlocked = sessionStorage.getItem('magen_staff_pos_unlocked');
       const activeStaff = storage.getActiveUser();
-      if (savedMode === 'staff_pos' && activeStaff) {
-        setPortalMode('staff_pos');
+      if (isUnlocked === 'true' && activeStaff) {
         setStaffUnlocked(true);
+        appData.setActiveUser(activeStaff);
+      } else {
+        setStaffUnlocked(false);
+        appData.setActiveUser(null);
       }
     } catch {
       // ignore storage errors
     }
   }, []);
 
-  if (!appData.isMounted || !appData.activeUser || !appData.company) {
+  if (!appData.isMounted || !appData.company) {
     return <AppLoading />;
   }
 
@@ -66,14 +69,17 @@ export function AppShell({ initialData }: AppShellProps = {}) {
     } catch {
       // ignore
     }
-    // Route directly to the dedicated POS terminal
+    // Route directly to the authorized POS terminal
     window.location.href = '/pos';
   };
 
   const handleLockPos = () => {
+    storage.lockPos();
+    appData.setActiveUser(null);
     setStaffUnlocked(false);
     try {
       sessionStorage.removeItem('magen_staff_pos_unlocked');
+      localStorage.removeItem('magen_portal_view');
     } catch {
       // ignore
     }
@@ -90,14 +96,14 @@ export function AppShell({ initialData }: AppShellProps = {}) {
 
   return (
     <>
-      {portalMode === 'public_website' ? (
+      {portalMode === 'public_website' || !staffUnlocked || !appData.activeUser ? (
         <PublicShowcaseWebsite
           company={appData.company}
           services={appData.services}
           campaigns={appData.campaigns}
-          activeStaffUser={appData.activeUser}
+          activeStaffUser={staffUnlocked ? appData.activeUser : null}
           onStaffLoginSuccess={handleStaffLoginSuccess}
-          onEnterPosDirectly={handleReturnToPos}
+          onEnterPosDirectly={staffUnlocked && appData.activeUser ? handleReturnToPos : undefined}
           isLoadingDb={appData.isLoadingDb}
           lastSyncedAt={appData.lastSyncedAt}
           onRefreshDb={appData.refetchDb}

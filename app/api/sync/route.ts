@@ -8,7 +8,11 @@ export async function GET() {
 
     const [users, company, sales, quotations, inventory, services, expenses, movements] =
       await Promise.all([
-        prisma.user.findMany({ where: { active: true }, orderBy: { createdAt: 'asc' } }),
+        prisma.user.findMany({
+          where: { active: true },
+          select: { id: true, name: true, role: true, avatar: true, email: true, active: true },
+          orderBy: { createdAt: 'asc' }
+        }),
         prisma.company.findUnique({ where: { id: 'default' } }),
         prisma.saleReceipt.findMany({
           include: { items: true },

@@ -112,7 +112,7 @@ export function ActorsManager({
     setEditingUser(user);
     setFormName(user.name);
     setFormRole(user.role);
-    setFormPin(user.pin);
+    setFormPin('');
     setFormEmail(user.email || '');
     setFormAvatar(user.avatar || (user.role === 'admin' ? '👑' : user.role === 'manager' ? '💼' : '🧑‍💼'));
     setFormActive(user.active !== false);
@@ -185,8 +185,8 @@ export function ActorsManager({
       setFormError('Staff name is required');
       return;
     }
-    if (!formPin.trim() || formPin.trim().length < 4) {
-      setFormError('PIN must be at least 4 digits');
+    if (formPin.trim() && formPin.trim().length < 4) {
+      setFormError('New PIN must be at least 4 digits');
       return;
     }
 
@@ -198,7 +198,7 @@ export function ActorsManager({
         id: editingUser.id,
         name: formName.trim(),
         role: formRole,
-        pin: formPin.trim(),
+        ...(formPin.trim() ? { pin: formPin.trim() } : {}),
         email: formEmail.trim() || undefined,
         avatar: formAvatar,
         active: formActive
@@ -208,7 +208,7 @@ export function ActorsManager({
       const serverRes = await updateUserAction(editingUser.id, {
         name: updatedUser.name,
         role: updatedUser.role,
-        pin: updatedUser.pin,
+        ...(formPin.trim() ? { pin: formPin.trim() } : {}),
         email: updatedUser.email,
         avatar: updatedUser.avatar,
         active: updatedUser.active
@@ -523,21 +523,11 @@ export function ActorsManager({
               {/* Status and Credentials */}
               <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                 <div>
-                  <span className="text-[10px] text-slate-400 block font-bold uppercase">PIN Code</span>
+                  <span className="text-[10px] text-slate-400 block font-bold uppercase">Security PIN</span>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="font-mono font-bold text-slate-700 dark:text-slate-200">
-                      {isPinVisible || isAdmin ? (isPinVisible ? user.pin : '••••') : '••••'}
+                    <span className="font-mono text-slate-500 text-xs">
+                      •••• (Encrypted)
                     </span>
-                    {(isAdmin || isMe) && (
-                      <button
-                        type="button"
-                        onClick={() => togglePinReveal(user.id)}
-                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer"
-                        title={isPinVisible ? 'Hide PIN' : 'Reveal PIN'}
-                      >
-                        {isPinVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                      </button>
-                    )}
                   </div>
                 </div>
 

@@ -310,28 +310,24 @@ export function AppHeader({
                 </span>
               </button>
 
-              {/* Mobile avatar */}
-              <button
-                type="button"
-                onClick={onOpenAuth}
-                className="
-                  flex h-10 w-10
-                  items-center justify-center
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-slate-50
-                  text-base
-
-                  dark:border-slate-800
-                  dark:bg-slate-900
-
-                  lg:hidden
-                "
-                aria-label="Account"
-              >
-                {activeUser.avatar || '👤'}
-              </button>
+              {/* Lock POS quick action button */}
+              {onLockPos && (
+                <button
+                  type="button"
+                  onClick={onLockPos}
+                  title="Lock POS Terminal (Sign Out)"
+                  className="
+                    flex h-10 items-center gap-1.5 px-3
+                    rounded-xl border border-rose-200 bg-rose-50/80 text-rose-700
+                    text-xs font-bold transition hover:bg-rose-100 hover:text-rose-800
+                    cursor-pointer shadow-2xs
+                    dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60
+                  "
+                >
+                  <Lock className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Lock POS</span>
+                </button>
+              )}
             </div>
           </div>
 

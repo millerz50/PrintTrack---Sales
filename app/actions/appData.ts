@@ -69,7 +69,6 @@ export async function getDatabaseStateAction(): Promise<DatabaseState> {
       id: u.id,
       name: u.name,
       role: (u.role as any),
-      pin: u.pin,
       email: u.email || undefined,
       avatar: u.avatar || undefined,
       active: u.active

@@ -6,6 +6,15 @@ export async function GET() {
   try {
     await ensureDatabaseInitialized();
     const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        avatar: true,
+        email: true,
+        active: true,
+        createdAt: true
+      },
       orderBy: { createdAt: 'asc' }
     });
     return NextResponse.json({ success: true, users });
@@ -49,7 +58,20 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({ success: true, user: newUser }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          role: newUser.role,
+          avatar: newUser.avatar,
+          email: newUser.email,
+          active: newUser.active
+        }
+      },
+      { status: 201 }
+    );
   } catch (error: any) {
     console.error('Error creating user:', error);
     return NextResponse.json(
@@ -105,7 +127,17 @@ export async function PUT(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({ success: true, user: updatedUser });
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        role: updatedUser.role,
+        avatar: updatedUser.avatar,
+        email: updatedUser.email,
+        active: updatedUser.active
+      }
+    });
   } catch (error: any) {
     console.error('Error updating user:', error);
     return NextResponse.json(

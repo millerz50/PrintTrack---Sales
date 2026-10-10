@@ -4,7 +4,7 @@ export interface User {
   id: string;
   name: string;
   role: UserRole;
-  pin: string;
+  pin?: string;
   avatar?: string;
   email?: string;
   active?: boolean;

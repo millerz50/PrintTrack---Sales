@@ -37,10 +37,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const [activeTab, setActiveTab] = useState<'signin' | 'manage'>('signin');
   const [users, setUsers] = useState<User[]>(storage.getUsers());
-  const [selectedUser, setSelectedUser] = useState<User>(activeUser);
+  const [selectedUser, setSelectedUser] = useState<User>(activeUser || storage.getUsers()[0]);
   const [pinInput, setPinInput] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // CRUD State
   const [isEditing, setIsEditing] = useState(false);
@@ -55,8 +56,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const reloadUsers = () => {
     const updated = storage.getUsers();
     setUsers(updated);
-    // update selected if needed
-    const found = updated.find(u => u.id === selectedUser.id);
+    const found = updated.find(u => u.id === selectedUser?.id);
     if (found) setSelectedUser(found);
     else if (updated.length > 0) setSelectedUser(updated[0]);
   };
@@ -72,39 +72,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     e.preventDefault();
     setErrorMsg('');
 
-    if (pinInput.trim() !== selectedUser.pin) {
-      setErrorMsg('Incorrect PIN. Please check and try again.');
+    if (!pinInput.trim()) {
+      setErrorMsg('Please enter your 4-digit PIN code.');
       return;
     }
 
+    setIsLoading(true);
     try {
-      const verified = await storage.authenticateUser(selectedUser.id, pinInput);
+      const verified = await storage.authenticateUser(selectedUser.id, pinInput.trim());
       if (verified) {
         storage.setActiveUser(verified);
         onUserChanged(verified);
         onClose();
       } else {
-        setErrorMsg('Authentication failed.');
+        setErrorMsg('Incorrect PIN. Authentication failed.');
       }
     } catch {
-      storage.setActiveUser(selectedUser);
-      onUserChanged(selectedUser);
-      onClose();
+      setErrorMsg('Authentication error. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const handleQuickSwitch = (user: User) => {
-    setSelectedUser(user);
-    storage.setActiveUser(user);
-    onUserChanged(user);
-    onClose();
   };
 
   const startCreateUser = () => {
     setEditingUserId(null);
     setFormName('');
     setFormRole('teller');
-    setFormPin(Math.floor(1000 + Math.random() * 9000).toString());
+    setFormPin('');
     setFormAvatar('🧑‍💼');
     setFormEmail('');
     setIsEditing(true);
@@ -116,7 +110,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setEditingUserId(user.id);
     setFormName(user.name);
     setFormRole(user.role);
-    setFormPin(user.pin);
+    setFormPin('');
     setFormAvatar(user.avatar || '👤');
     setFormEmail((user as any).email || '');
     setIsEditing(true);
@@ -136,8 +130,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setErrorMsg('User name is required.');
       return;
     }
-    if (!formPin.trim() || formPin.trim().length < 4) {
+
+    if (!editingUserId && (!formPin.trim() || formPin.trim().length < 4)) {
       setErrorMsg('Security PIN must be at least 4 digits.');
+      return;
+    }
+
+    if (editingUserId && formPin.trim() && formPin.trim().length < 4) {
+      setErrorMsg('PIN must be at least 4 digits if changing.');
       return;
     }
 
@@ -151,31 +151,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           id: editingUserId,
           name: formName.trim(),
           role: formRole,
-          pin: formPin.trim(),
+          ...(formPin.trim() ? { pin: formPin.trim() } : {}),
           avatar: formAvatar,
           ...((formEmail.trim() ? { email: formEmail.trim() } : {}) as any)
         });
-        if (activeUser.id === editingUserId) {
+        if (activeUser?.id === editingUserId) {
           onUserChanged(updated);
         }
-        setSuccessMsg(`User "${formName}" updated successfully in enterprise database & local storage.`);
+        setSuccessMsg(`Staff user "${updated.name}" updated successfully.`);
       } else {
         // Create user
-        await storage.createUser({
+        const created = await storage.createUser({
           name: formName.trim(),
           role: formRole,
           pin: formPin.trim(),
           avatar: formAvatar,
           email: formEmail.trim() || undefined
         });
-        setSuccessMsg(`New user "${formName}" created and synced.`);
+        setSuccessMsg(`New staff user "${created.name}" created successfully.`);
       }
-
-      reloadUsers();
       setIsEditing(false);
       setEditingUserId(null);
+      reloadUsers();
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to save user.');
+      setErrorMsg(err.message || 'Operation failed.');
     } finally {
       setIsSubmitting(false);
     }
@@ -183,20 +182,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleDeleteUser = async (user: User) => {
     if (user.role === 'admin') {
-      const adminCount = users.filter(u => u.role === 'admin').length;
-      if (adminCount <= 1) {
-        alert('Action Blocked: System must have at least one active Administrator.');
+      const admins = users.filter(u => u.role === 'admin');
+      if (admins.length <= 1) {
+        setErrorMsg('Cannot delete the sole Administrator account.');
         return;
       }
     }
 
-    if (!confirm(`Are you sure you want to delete user "${user.name}"? This action removes their access.`)) {
+    if (!window.confirm(`Are you sure you want to deactivate staff account "${user.name}"?`)) {
       return;
     }
 
     try {
       await storage.deleteUser(user.id);
-      setSuccessMsg(`User "${user.name}" deleted successfully.`);
+      setSuccessMsg(`Staff account "${user.name}" deactivated.`);
       reloadUsers();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to delete user.');
@@ -214,10 +213,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
             <div>
               <h3 className="font-bold text-slate-900 text-sm sm:text-base">
-                User Authentication & Staff Management
+                Staff Authentication &amp; Terminal Switch
               </h3>
               <p className="text-[11px] text-slate-500">
-                Secure Enterprise Staff Authentication • Cloud Sync Enabled
+                Authorized Workshop Access &bull; Encrypted Sessions
               </p>
             </div>
           </div>
@@ -246,25 +245,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             }`}
           >
             <Lock className="w-3.5 h-3.5" />
-            <span>Sign In / Switch Operator</span>
+            <span>Switch Operator</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('manage');
-              setErrorMsg('');
-              setSuccessMsg('');
-            }}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
-              activeTab === 'manage'
-                ? 'bg-[#0C2D64] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>Manage Staff Users (CRUD)</span>
-          </button>
+          {activeUser?.role === 'admin' && (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('manage');
+                setErrorMsg('');
+                setSuccessMsg('');
+              }}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
+                activeTab === 'manage'
+                  ? 'bg-[#0C2D64] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Staff Management</span>
+            </button>
+          )}
         </div>
 
         {/* Notification alerts */}
@@ -286,12 +287,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <div className="mt-4 space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-2">
-                Select Active Account:
+                Select Staff Account:
               </label>
               <div className="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto pr-1">
                 {users.map(user => {
-                  const isCurrent = user.id === activeUser.id;
-                  const isSelected = user.id === selectedUser.id;
+                  const isCurrent = user.id === activeUser?.id;
+                  const isSelected = user.id === selectedUser?.id;
 
                   return (
                     <div
@@ -299,7 +300,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       onClick={() => handleSelectUser(user)}
                       className={`p-3 rounded-xl border transition cursor-pointer flex items-center justify-between ${
                         isSelected
-                          ? 'border-[#0C2D64] bg-blue-50/70 shadow-xs'
+                          ? 'border-[#0C2D64] bg-blue-50/70 shadow-xs ring-1 ring-[#0C2D64]/20'
                           : 'border-slate-200 hover:border-slate-300 bg-white'
                       }`}
                     >
@@ -322,14 +323,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                             ) : (
                               <UserCheck className="w-3 h-3 text-blue-500 inline" />
                             )}
-                            Role: {user.role} ({user.role === 'admin' ? 'Full Access' : 'POS Sales & Receipts'})
+                            Role: {user.role} ({user.role === 'admin' ? 'Full Admin Access' : 'POS Sales & Workshop Register'})
                           </span>
                         </div>
                       </div>
 
                       <div className="text-right">
                         <span className="text-[10px] text-slate-400 font-mono">
-                          PIN: {user.pin}
+                          PIN Protected
                         </span>
                       </div>
                     </div>
@@ -342,7 +343,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <form onSubmit={handleLogin} className="pt-3 border-t border-slate-100 space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Enter PIN for {selectedUser.name}:
+                  Enter PIN for {selectedUser?.name}:
                 </label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -355,43 +356,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       setPinInput(e.target.value);
                       setErrorMsg('');
                     }}
-                    placeholder={`PIN (Default: ${selectedUser.pin})`}
+                    placeholder="Enter 4-digit PIN"
                     className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0C2D64] focus:outline-none tracking-widest font-mono"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center justify-end space-x-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => handleQuickSwitch(selectedUser)}
-                  className="text-xs text-[#0C2D64] hover:underline font-semibold"
+                  onClick={onClose}
+                  className="px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer"
                 >
-                  Quick Sign In (Skip PIN)
+                  Cancel
                 </button>
-
-                <div className="flex space-x-2">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-[#0C2D64] hover:bg-[#081e44] text-white text-xs font-bold rounded-lg shadow-sm transition"
-                  >
-                    Verify &amp; Switch
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  disabled={isLoading || !pinInput.trim()}
+                  className="px-4 py-2 bg-[#0C2D64] hover:bg-[#081e44] disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>{isLoading ? 'Verifying...' : 'Verify & Switch'}</span>
+                </button>
               </div>
             </form>
           </div>
         )}
 
         {/* TAB 2: MANAGE STAFF USERS (CRUD) */}
-        {activeTab === 'manage' && (
+        {activeTab === 'manage' && activeUser?.role === 'admin' && (
           <div className="mt-4 space-y-4">
             {!isEditing ? (
               <>
@@ -403,7 +396,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     type="button"
                     onClick={startCreateUser}
-                    className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#388E3C] hover:bg-[#2e7d32] text-white text-xs font-bold rounded-xl shadow-xs transition"
+                    className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#388E3C] hover:bg-[#2e7d32] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     <span>Add New Staff User</span>
@@ -434,15 +427,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                             >
                               {user.role}
                             </span>
-                            {user.id === activeUser.id && (
+                            {user.id === activeUser?.id && (
                               <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
                                 Current
                               </span>
                             )}
                           </div>
                           <div className="text-[11px] text-slate-500 font-mono mt-0.5 flex items-center space-x-2">
-                            <span>PIN: {user.pin}</span>
-                            {(user as any).email && <span>• {(user as any).email}</span>}
+                            <span>PIN Protected</span>
+                            {(user as any).email && <span>&bull; {(user as any).email}</span>}
                           </div>
                         </div>
                       </div>
@@ -451,50 +444,44 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         <button
                           type="button"
                           onClick={() => startEditUser(user)}
-                          className="p-1.5 text-slate-600 hover:text-[#0C2D64] hover:bg-white rounded-lg transition"
-                          title="Edit User"
+                          className="p-1.5 text-slate-500 hover:text-[#0C2D64] hover:bg-white rounded-lg transition"
+                          title="Edit staff details"
                         >
-                          <Edit3 className="w-3.5 h-3.5" />
+                          <Edit3 className="w-4 h-4" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteUser(user)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                          title="Delete User"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {user.id !== activeUser?.id && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteUser(user)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-white rounded-lg transition"
+                            title="Deactivate staff user"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
               </>
             ) : (
-              /* Create or Edit User Form */
-              <form onSubmit={handleSaveUser} className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                  <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wide">
-                    {editingUserId ? 'Edit Staff User' : 'Create New Staff User'}
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={cancelEdit}
-                    className="text-xs text-slate-500 hover:text-slate-800"
-                  >
-                    Back to list
-                  </button>
-                </div>
+              /* Create / Edit Form */
+              <form onSubmit={handleSaveUser} className="space-y-3.5 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <h4 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center space-x-1.5">
+                  <UserPlus className="w-4 h-4 text-emerald-600" />
+                  <span>{editingUserId ? `Edit Staff Member` : 'Register New Staff Member'}</span>
+                </h4>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Full Name / Display Name: *
+                    Staff Full Name:
                   </label>
                   <input
                     type="text"
                     required
                     value={formName}
                     onChange={e => setFormName(e.target.value)}
-                    placeholder="e.g. John Moyo"
+                    placeholder="e.g. Tendai Moyo"
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0C2D64] focus:outline-none"
                   />
                 </div>
@@ -502,51 +489,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Role &amp; Permissions:
+                      Assigned Role:
                     </label>
                     <select
                       value={formRole}
                       onChange={e => setFormRole(e.target.value as UserRole)}
                       className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0C2D64] focus:outline-none"
                     >
-                      <option value="teller">Teller / Operator (POS &amp; Quotes)</option>
-                      <option value="manager">Manager (Reports, Inventory &amp; Costs)</option>
-                      <option value="admin">Administrator (Full CRUD &amp; System Control)</option>
+                      <option value="teller">Teller / Counter Desk</option>
+                      <option value="manager">Operations Manager</option>
+                      <option value="admin">System Administrator</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      4-Digit Security PIN: *
+                      {editingUserId ? 'Reset PIN (Leave blank to keep):' : '4-Digit Security PIN:'}
                     </label>
                     <input
-                      type="text"
+                      type="password"
                       maxLength={6}
-                      required
                       value={formPin}
                       onChange={e => setFormPin(e.target.value)}
-                      placeholder="e.g. 2026"
-                      className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0C2D64] focus:outline-none font-mono tracking-wider"
+                      placeholder={editingUserId ? 'Keep existing' : 'e.g. 5432'}
+                      className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0C2D64] focus:outline-none font-mono"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Email Address (Optional):
+                    Work Email / ID (Optional):
                   </label>
                   <input
                     type="email"
                     value={formEmail}
                     onChange={e => setFormEmail(e.target.value)}
-                    placeholder="user@magensolutions.com"
+                    placeholder="tendai@magensolutions.com"
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0C2D64] focus:outline-none"
                   />
                 </div>
 
+                {/* Avatar selection */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Choose Avatar Icon:
+                    Profile Avatar Badge:
                   </label>
                   <div className="flex items-center space-x-2">
                     {AVATAR_OPTIONS.map(av => (
@@ -554,10 +541,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         key={av}
                         type="button"
                         onClick={() => setFormAvatar(av)}
-                        className={`text-xl p-1.5 rounded-lg border transition ${
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg border transition ${
                           formAvatar === av
-                            ? 'bg-blue-100 border-[#0C2D64] scale-110 shadow-xs'
-                            : 'bg-white border-slate-200 hover:border-slate-300'
+                            ? 'bg-[#0C2D64] text-white border-[#0C2D64] shadow-xs'
+                            : 'bg-white border-slate-200 hover:bg-slate-100'
                         }`}
                       >
                         {av}
@@ -570,16 +557,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     type="button"
                     onClick={cancelEdit}
-                    className="px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition"
+                    className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-4 py-2 bg-[#0C2D64] hover:bg-[#081e44] text-white text-xs font-bold rounded-lg shadow-sm transition disabled:opacity-50"
+                    className="px-4 py-1.5 bg-[#0C2D64] hover:bg-[#081e44] text-white text-xs font-bold rounded-lg shadow-sm transition"
                   >
-                    {isSubmitting ? 'Saving...' : editingUserId ? 'Update User' : 'Create User'}
+                    {isSubmitting ? 'Saving...' : editingUserId ? 'Save Changes' : 'Create User'}
                   </button>
                 </div>
               </form>

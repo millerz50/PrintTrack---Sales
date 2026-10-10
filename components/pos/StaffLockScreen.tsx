@@ -276,10 +276,10 @@ export function StaffLockScreen({
             )}
           </button>
 
-          {/* Quick PIN reference for demo/testing */}
-          <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-500 text-center">
-            <span>Demo PINs: </span>
-            <span className="text-slate-400 font-mono">Sarah (1234) • David (0000) • Michael (2222) • Grace (1111)</span>
+          {/* Security Notice */}
+          <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-500 text-center flex items-center justify-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Encrypted POS Backoffice Session &bull; Mount Darwin Terminal</span>
           </div>
         </div>
       </div>

@@ -254,11 +254,17 @@ class StorageService {
   public getUsers(): User[] {
     const data = safeStorage.getItem(KEYS.USERS);
     if (!data) {
-      safeStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
+      const sanitized = INITIAL_USERS.map(({ pin, ...rest }) => rest);
+      safeStorage.setItem(KEYS.USERS, JSON.stringify(sanitized));
       safeStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
-      return INITIAL_USERS;
+      return sanitized;
     }
-    return JSON.parse(data);
+    try {
+      const parsed = JSON.parse(data);
+      return parsed.map(({ pin, ...rest }: any) => rest);
+    } catch {
+      return [];
+    }
   }
 
   public async createUser(userData: {
@@ -272,7 +278,6 @@ class StorageService {
       id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       name: userData.name.trim(),
       role: userData.role,
-      pin: userData.pin.trim(),
       avatar: userData.avatar || (userData.role === 'admin' ? '👑' : userData.role === 'manager' ? '💼' : '🧑‍💼')
     };
 
@@ -286,7 +291,10 @@ class StorageService {
         await fetch('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newUser)
+          body: JSON.stringify({
+            ...newUser,
+            pin: userData.pin.trim()
+          })
         });
       } catch (err) {
         console.warn('Offline: User saved locally and will sync later:', err);
@@ -303,7 +311,7 @@ class StorageService {
       safeStorage.setItem(KEYS.USERS, JSON.stringify(users));
 
       const active = this.getActiveUser();
-      if (active.id === user.id) {
+      if (active && active.id === user.id) {
         this.setActiveUser(user);
       }
       this.notify();
@@ -339,8 +347,8 @@ class StorageService {
     safeStorage.setItem(KEYS.USERS, JSON.stringify(updated));
 
     const active = this.getActiveUser();
-    if (active.id === id && updated.length > 0) {
-      this.setActiveUser(updated[0]);
+    if (active && active.id === id) {
+      this.setActiveUser(null);
     }
     this.notify();
 
@@ -357,48 +365,67 @@ class StorageService {
   }
 
   public async authenticateUser(userId: string, enteredPin: string): Promise<User | null> {
-    const users = this.getUsers();
-    const localUser = users.find(u => u.id === userId);
-
-    // Online verification if possible
-    if (this.isOnline) {
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, pin: enteredPin })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.user) {
-            return data.user;
-          }
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, pin: enteredPin.trim() })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          const authUser: User = data.user;
+          this.setActiveUser(authUser);
+          return authUser;
         }
-      } catch (e) {
-        console.warn('Falling back to local PIN authentication (offline)', e);
       }
-    }
-
-    // Offline / Local verification fallback
-    if (localUser && localUser.pin === enteredPin.trim()) {
-      return localUser;
+    } catch (e) {
+      console.warn('Network error during staff authentication:', e);
     }
     return null;
   }
 
-  public getActiveUser(): User {
+  public getActiveUser(): User | null {
+    if (typeof window !== 'undefined') {
+      const unlocked = sessionStorage.getItem('magen_staff_pos_unlocked');
+      if (unlocked !== 'true') {
+        return null;
+      }
+    }
     const data = safeStorage.getItem(KEYS.ACTIVE_USER);
     if (data) {
-      return JSON.parse(data);
+      try {
+        return JSON.parse(data);
+      } catch {
+        return null;
+      }
     }
-    const defaultUser = this.getUsers()[0]; // Default Sarah Admin
-    safeStorage.setItem(KEYS.ACTIVE_USER, JSON.stringify(defaultUser));
-    return defaultUser;
+    return null;
   }
 
-  public setActiveUser(user: User): void {
-    safeStorage.setItem(KEYS.ACTIVE_USER, JSON.stringify(user));
+  public setActiveUser(user: User | null): void {
+    if (user) {
+      const { pin, ...sanitized } = user;
+      safeStorage.setItem(KEYS.ACTIVE_USER, JSON.stringify(sanitized));
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('magen_staff_pos_unlocked', 'true');
+      }
+    } else {
+      safeStorage.removeItem(KEYS.ACTIVE_USER);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('magen_staff_pos_unlocked');
+        localStorage.removeItem('magen_portal_view');
+      }
+    }
     this.notify();
+  }
+
+  public lockPos(): void {
+    this.setActiveUser(null);
+  }
+
+  public isAuthenticated(): boolean {
+    return this.getActiveUser() !== null;
   }
 
   // Services & Pricing

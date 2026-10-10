@@ -18,7 +18,6 @@ export async function getUsersAction(): Promise<{ success: boolean; users?: User
       id: u.id,
       name: u.name,
       role: (u.role as UserRole),
-      pin: u.pin,
       email: u.email || undefined,
       avatar: u.avatar || undefined,
       active: u.active
@@ -70,7 +69,6 @@ export async function createUserAction(data: {
       id: created.id,
       name: created.name,
       role: (created.role as UserRole),
-      pin: created.pin,
       email: created.email || undefined,
       avatar: created.avatar || undefined,
       active: created.active
@@ -132,7 +130,6 @@ export async function updateUserAction(
       id: updated.id,
       name: updated.name,
       role: (updated.role as UserRole),
-      pin: updated.pin,
       email: updated.email || undefined,
       avatar: updated.avatar || undefined,
       active: updated.active

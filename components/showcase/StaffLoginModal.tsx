@@ -167,10 +167,12 @@ export function StaffLoginModal({ isOpen, onClose, onSuccess }: StaffLoginModalP
               <KeyRound className="w-5 h-5 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
-            {/* Quick Demo Hint */}
+            {/* Security Notice */}
             <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-500">
-              <span>{selectedUser?.name}: PIN is <span className="font-mono text-emerald-400 font-semibold">{selectedUser?.pin}</span></span>
-              <span>Protected Session</span>
+              <span>Enter 4-digit secret authorization PIN</span>
+              <span className="text-emerald-400 flex items-center gap-1 font-medium">
+                <ShieldCheck className="w-3 h-3" /> Secure Backoffice
+              </span>
             </div>
           </div>
 

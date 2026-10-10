@@ -20,9 +20,7 @@ import {
 export function useAppData(initialData?: DatabaseState) {
   const [isMounted, setIsMounted] = useState(false);
 
-  const [activeUser, setActiveUser] = useState<User | null>(
-    initialData?.users?.[0] || null
-  );
+  const [activeUser, setActiveUser] = useState<User | null>(null);
   const [company, setCompany] = useState<CompanyInfo | null>(
     initialData?.company || null
   );
@@ -62,8 +60,10 @@ export function useAppData(initialData?: DatabaseState) {
         if (dbState.quotations) setQuotations(dbState.quotations);
         if (dbState.users && dbState.users.length > 0) {
           const current = storage.getActiveUser();
-          const matched = dbState.users.find(u => u.id === current.id);
-          if (matched) setActiveUser(matched);
+          if (current) {
+            const matched = dbState.users.find(u => u.id === current.id);
+            if (matched) setActiveUser(matched);
+          }
         }
         setLastSyncedAt(new Date());
       }
