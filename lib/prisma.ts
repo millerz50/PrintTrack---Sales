@@ -3,54 +3,42 @@ import path from 'path';
 import fs from 'fs';
 
 function setupDatabaseUrl(): string {
-  // If a valid non-relative database URL is provided (e.g. Postgres or custom), use it
-  const envUrl = process.env.DATABASE_URL;
-  if (envUrl && envUrl.startsWith('file:') && !envUrl.includes('./dev.db')) {
-    return envUrl;
+  const customUrl = process.env.DATABASE_URL;
+  if (customUrl && !customUrl.includes('./dev.db') && !customUrl.startsWith('file:./') && !customUrl.includes('prisma/dev.db')) {
+    return customUrl;
   }
 
   const cwd = process.cwd();
   const prismaDir = path.resolve(cwd, 'prisma');
-  const prismaDbPath = path.resolve(prismaDir, 'dev.db');
-  const rootDbPath = path.resolve(cwd, 'dev.db');
+  const sourceDbPath = path.resolve(prismaDir, 'dev.db');
+  const writableDbPath = '/tmp/mibs_dev.db';
 
-  // Ensure prisma directory exists
-  if (!fs.existsSync(prismaDir)) {
-    try {
-      fs.mkdirSync(prismaDir, { recursive: true });
-    } catch {
-      // ignore
-    }
-  }
-
-  // Ensure both prisma/dev.db and root dev.db are accessible and linked
-  if (fs.existsSync(prismaDbPath)) {
-    if (!fs.existsSync(rootDbPath)) {
-      try {
-        fs.linkSync(prismaDbPath, rootDbPath);
-      } catch {
-        try {
-          fs.copyFileSync(prismaDbPath, rootDbPath);
-        } catch {
-          // ignore
-        }
+  try {
+    // If writableDbPath doesn't exist yet, copy from existing sourceDbPath
+    if (!fs.existsSync(writableDbPath)) {
+      if (fs.existsSync(sourceDbPath)) {
+        fs.copyFileSync(sourceDbPath, writableDbPath);
       }
     }
-    return `file:${prismaDbPath}`;
-  } else if (fs.existsSync(rootDbPath)) {
-    try {
-      fs.linkSync(rootDbPath, prismaDbPath);
-    } catch {
-      try {
-        fs.copyFileSync(rootDbPath, prismaDbPath);
-      } catch {
-        // ignore
-      }
+
+    if (fs.existsSync(writableDbPath)) {
+      fs.chmodSync(writableDbPath, 0o666);
+      return `file:${writableDbPath}`;
     }
-    return `file:${rootDbPath}`;
+  } catch (err) {
+    console.warn('[Prisma] Could not initialize /tmp/mibs_dev.db, using source path:', err);
   }
 
-  return `file:${prismaDbPath}`;
+  // Ensure sourceDbPath is chmod 666 if accessible
+  try {
+    if (fs.existsSync(sourceDbPath)) {
+      fs.chmodSync(sourceDbPath, 0o666);
+    }
+  } catch {
+    // ignore
+  }
+
+  return `file:${sourceDbPath}`;
 }
 
 const resolvedDbUrl = setupDatabaseUrl();
@@ -73,6 +61,10 @@ try {
       },
       log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     });
+
+  // Configure SQLite for high concurrency and avoid locks
+  prismaClient.$queryRawUnsafe('PRAGMA busy_timeout = 10000;').catch(() => {});
+  prismaClient.$queryRawUnsafe('PRAGMA journal_mode = WAL;').catch(() => {});
 } catch (err) {
   console.warn('[AI Studio] Database client initialization warning — using resilient proxy:', err);
   const noOp = {
@@ -84,6 +76,7 @@ try {
     delete: async () => ({}),
     count: async () => 0,
     upsert: async (d: any) => d?.create ?? {},
+    $queryRawUnsafe: async () => [],
   };
   prismaClient = new Proxy({}, { get: () => noOp }) as unknown as PrismaClient;
 }

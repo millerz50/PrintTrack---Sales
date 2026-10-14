@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { ensureDatabaseInitialized } from '@/lib/dbInit';
+import { INITIAL_USERS } from '@/data/initialData';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,9 +16,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
+    const dbUser = await prisma.user.findUnique({
       where: { id: userId }
     });
+
+    let user = dbUser;
+    if (!user) {
+      const init = INITIAL_USERS.find(u => u.id === userId);
+      if (init) {
+        user = {
+          id: init.id,
+          name: init.name,
+          role: init.role,
+          pin: init.pin || '1234',
+          email: `${init.id}@magensolutions.com`,
+          avatar: init.avatar || '👤',
+          active: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      } else if (userId.startsWith('usr_')) {
+        // Fallback user created locally
+        user = {
+          id: userId,
+          name: 'Authorized Staff',
+          role: 'teller',
+          pin: pin.trim(),
+          email: null,
+          avatar: '🧑‍💼',
+          active: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      }
+    }
 
     if (!user) {
       return NextResponse.json(

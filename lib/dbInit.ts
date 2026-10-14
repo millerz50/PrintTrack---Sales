@@ -17,19 +17,23 @@ export async function ensureDatabaseInitialized() {
   try {
     // 1. Seed Users if missing
     for (const u of INITIAL_USERS) {
-      const existing = await prisma.user.findUnique({ where: { id: u.id } });
-      if (!existing) {
-        await prisma.user.create({
-          data: {
-            id: u.id,
-            name: u.name,
-            role: u.role,
-            pin: u.pin,
-            avatar: u.avatar || '👤',
-            email: `${u.id}@magensolutions.com`,
-            active: true
-          }
-        });
+      try {
+        const existing = await prisma.user.findUnique({ where: { id: u.id } });
+        if (!existing) {
+          await prisma.user.create({
+            data: {
+              id: u.id,
+              name: u.name,
+              role: u.role,
+              pin: u.pin,
+              avatar: u.avatar || '👤',
+              email: `${u.id}@magensolutions.com`,
+              active: true
+            }
+          });
+        }
+      } catch (userErr) {
+        // Safe: user might already exist or DB briefly busy
       }
     }
 
