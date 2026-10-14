@@ -15,10 +15,10 @@ export async function ensureDatabaseInitialized() {
   if (isInitialized) return;
 
   try {
-    // 1. Seed Users if empty
-    const userCount = await prisma.user.count();
-    if (userCount === 0) {
-      for (const u of INITIAL_USERS) {
+    // 1. Seed Users if missing
+    for (const u of INITIAL_USERS) {
+      const existing = await prisma.user.findUnique({ where: { id: u.id } });
+      if (!existing) {
         await prisma.user.create({
           data: {
             id: u.id,

@@ -163,8 +163,8 @@ export async function DELETE(req: NextRequest) {
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 }
+        { success: true, message: 'User already deleted or not found', deletedId: id },
+        { status: 200 }
       );
     }
 

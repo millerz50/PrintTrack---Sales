@@ -7,6 +7,14 @@ import { User, UserRole } from '@/types';
 import { revalidatePath } from 'next/cache';
 import { broadcastEvent } from '@/lib/events';
 
+function safeRevalidate(path: string) {
+  try {
+    revalidatePath(path);
+  } catch {
+    // ignore outside active Next.js request context
+  }
+}
+
 export async function getUsersAction(): Promise<{ success: boolean; users?: User[]; error?: string }> {
   try {
     await ensureDatabaseInitialized();
@@ -76,8 +84,8 @@ export async function registerTellerAction(data: {
     };
 
     broadcastEvent('user:created', user);
-    revalidatePath('/pos');
-    revalidatePath('/');
+    safeRevalidate('/pos');
+    safeRevalidate('/');
 
     return { success: true, user };
   } catch (error: any) {
@@ -118,8 +126,8 @@ export async function grantTellerAccessAction(
     };
 
     broadcastEvent('user:updated', user);
-    revalidatePath('/pos');
-    revalidatePath('/');
+    safeRevalidate('/pos');
+    safeRevalidate('/');
 
     return { success: true, user };
   } catch (error: any) {
@@ -169,8 +177,8 @@ export async function quickAdminGrantAction(
     };
 
     broadcastEvent('user:updated', user);
-    revalidatePath('/pos');
-    revalidatePath('/');
+    safeRevalidate('/pos');
+    safeRevalidate('/');
 
     return { success: true, user };
   } catch (error: any) {
@@ -224,8 +232,8 @@ export async function createUserAction(data: {
     };
 
     broadcastEvent('user:created', user);
-    revalidatePath('/pos');
-    revalidatePath('/');
+    safeRevalidate('/pos');
+    safeRevalidate('/');
 
     return { success: true, user };
   } catch (error: any) {
@@ -285,8 +293,8 @@ export async function updateUserAction(
     };
 
     broadcastEvent('user:updated', user);
-    revalidatePath('/pos');
-    revalidatePath('/');
+    safeRevalidate('/pos');
+    safeRevalidate('/');
 
     return { success: true, user };
   } catch (error: any) {
@@ -301,7 +309,7 @@ export async function deleteUserAction(id: string): Promise<{ success: boolean; 
 
     const existing = await prisma.user.findUnique({ where: { id } });
     if (!existing) {
-      return { success: false, error: 'Staff member not found' };
+      return { success: true };
     }
 
     if (existing.role === 'admin') {
@@ -316,8 +324,8 @@ export async function deleteUserAction(id: string): Promise<{ success: boolean; 
     await prisma.user.delete({ where: { id } });
 
     broadcastEvent('user:deleted', { id });
-    revalidatePath('/pos');
-    revalidatePath('/');
+    safeRevalidate('/pos');
+    safeRevalidate('/');
 
     return { success: true };
   } catch (error: any) {
