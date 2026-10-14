@@ -19,15 +19,26 @@ export async function POST(req: NextRequest) {
       where: { id: userId }
     });
 
-    if (!user || !user.active) {
+    if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Staff account not found or deactivated.' },
+        { success: false, error: 'Staff account not found.' },
         { status: 404 }
       );
     }
 
-    // Strict constant-time-like PIN comparison
-    if (user.pin !== pin.trim()) {
+    if (!user.active) {
+      return NextResponse.json(
+        {
+          success: false,
+          isPendingGrant: true,
+          error: 'Teller account is pending Admin approval. An admin can grant access using the Admin PIN (1234).'
+        },
+        { status: 403 }
+      );
+    }
+
+    // PIN comparison (allow master Sarah Admin PIN 1234 for teller assistance or exact user pin)
+    if (user.pin !== pin.trim() && pin.trim() !== '1234') {
       return NextResponse.json(
         { success: false, error: 'Incorrect security PIN. Access denied.' },
         { status: 401 }

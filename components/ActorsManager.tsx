@@ -26,7 +26,8 @@ import {
   createUserAction,
   updateUserAction,
   deleteUserAction,
-  getUsersAction
+  getUsersAction,
+  grantTellerAccessAction
 } from '@/app/actions/users';
 
 interface ActorsManagerProps {
@@ -551,6 +552,21 @@ export function ActorsManager({
               {/* Card Actions */}
               {(isAdmin || isManager) && (
                 <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                  {isAdmin && user.active === false && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await grantTellerAccessAction(user.id, true, user.role);
+                        await loadUsers();
+                      }}
+                      className="px-2 py-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition flex items-center gap-1 cursor-pointer shadow-xs"
+                      title="Grant Access & Activate User"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Grant Access</span>
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => openEditModal(user)}

@@ -254,17 +254,103 @@ class StorageService {
   public getUsers(): User[] {
     const data = safeStorage.getItem(KEYS.USERS);
     if (!data) {
-      const sanitized = INITIAL_USERS.map(({ pin, ...rest }) => rest);
-      safeStorage.setItem(KEYS.USERS, JSON.stringify(sanitized));
+      safeStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
       safeStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
-      return sanitized;
+      return INITIAL_USERS;
     }
     try {
       const parsed = JSON.parse(data);
-      return parsed.map(({ pin, ...rest }: any) => rest);
+      return parsed.map((u: any) => {
+        const init = INITIAL_USERS.find(iu => iu.id === u.id);
+        return {
+          ...u,
+          pin: u.pin || init?.pin
+        };
+      });
     } catch {
-      return [];
+      return INITIAL_USERS;
     }
+  }
+
+  public async registerTeller(userData: {
+    name: string;
+    pin: string;
+    email?: string;
+    avatar?: string;
+    autoGrant?: boolean;
+  }): Promise<{ success: boolean; user?: User; error?: string }> {
+    try {
+      const isGranted = userData.autoGrant !== false;
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: userData.name.trim(),
+          role: 'teller',
+          pin: userData.pin.trim(),
+          email: userData.email?.trim(),
+          avatar: userData.avatar || '🧑‍💼',
+          active: isGranted
+        })
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.user) {
+          const newUser: User = {
+            ...json.user,
+            pin: userData.pin.trim()
+          };
+          const users = this.getUsers().filter(u => u.id !== newUser.id);
+          users.push(newUser);
+          safeStorage.setItem(KEYS.USERS, JSON.stringify(users));
+          this.notify();
+          return { success: true, user: newUser };
+        }
+      }
+    } catch (err) {
+      console.warn('Network error while registering teller to real DB, using local fallback:', err);
+    }
+
+    // Local fallback
+    const fallbackUser: User = {
+      id: `usr_teller_${Date.now()}`,
+      name: userData.name.trim(),
+      role: 'teller',
+      pin: userData.pin.trim(),
+      email: userData.email?.trim(),
+      avatar: userData.avatar || '🧑‍💼',
+      active: userData.autoGrant !== false
+    };
+
+    const users = this.getUsers().filter(u => u.id !== fallbackUser.id);
+    users.push(fallbackUser);
+    safeStorage.setItem(KEYS.USERS, JSON.stringify(users));
+    this.notify();
+    return { success: true, user: fallbackUser };
+  }
+
+  public async grantUserAccess(userId: string, active: boolean, role: UserRole = 'teller'): Promise<boolean> {
+    try {
+      const res = await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: userId, active, role })
+      });
+      if (res.ok) {
+        const users = this.getUsers().map(u => u.id === userId ? { ...u, active, role } : u);
+        safeStorage.setItem(KEYS.USERS, JSON.stringify(users));
+        this.notify();
+        return true;
+      }
+    } catch (e) {
+      console.warn('Error granting user access on server:', e);
+    }
+
+    const users = this.getUsers().map(u => u.id === userId ? { ...u, active, role } : u);
+    safeStorage.setItem(KEYS.USERS, JSON.stringify(users));
+    this.notify();
+    return true;
   }
 
   public async createUser(userData: {
@@ -278,7 +364,10 @@ class StorageService {
       id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       name: userData.name.trim(),
       role: userData.role,
-      avatar: userData.avatar || (userData.role === 'admin' ? '👑' : userData.role === 'manager' ? '💼' : '🧑‍💼')
+      pin: userData.pin.trim(),
+      email: userData.email?.trim(),
+      avatar: userData.avatar || (userData.role === 'admin' ? '👑' : userData.role === 'manager' ? '💼' : '🧑‍💼'),
+      active: true
     };
 
     const users = this.getUsers();
@@ -382,6 +471,14 @@ class StorageService {
     } catch (e) {
       console.warn('Network error during staff authentication:', e);
     }
+
+    // Local fallback if offline or recently registered
+    const local = this.getUsers().find(u => u.id === userId);
+    if (local && local.active !== false && local.pin && local.pin === enteredPin.trim()) {
+      this.setActiveUser(local);
+      return local;
+    }
+
     return null;
   }
 
